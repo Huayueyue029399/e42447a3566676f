@@ -718,7 +718,7 @@ const t = (ev.time || '1000').replace(':','');
 const dtStart = d + 'T' + t + '00';
 const dtEnd = d + 'T' + String(parseInt(t.slice(0,2))+2).padStart(2,'0') + t.slice(2) + '00';
 const ics = [
-'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-
+'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TaiwanEvents//TW',
 'BEGIN:VEVENT',
 'UID:'+ev.id+'@tw-events',
 'DTSTART:'+dtStart,
@@ -850,7 +850,7 @@ if (dup) {
 showToast(`「${name}」在當天已有相同活動，請檢查`);
 return;
 }
-const tags = eTags.value.trim() ? eTags.value.split(',').map(s => s.trim()).filter(Boolean) : [];const urlFields = { image: eImage.value.trim(), link: eLink.value.trim(), fb: eFb.value.trim(), ig: eIg.value.trim(), x: eX.value.trim() };for (const [k, v] of Object.entries(urlFields)) {if (v && !/^https?:\/\if (v && /javascript:/i.test(v)) { showToast('不合法的網址'); return; }}const data = { name, type: eType.value, date, time: eTime.value, location: eLocation.value.trim(), fee: eFee.value.trim(), ...urlFields, desc: eDesc.value.trim(), notes: eNotes.value.trim(), tags };
+const tags = eTags.value.trim() ? eTags.value.split(',').map(s => s.trim()).filter(Boolean) : [];const urlFields = { image: eImage.value.trim(), link: eLink.value.trim(), fb: eFb.value.trim(), ig: eIg.value.trim(), x: eX.value.trim() };for (const [k, v] of Object.entries(urlFields)) {if (v && !/^https?:\/\//i.test(v)) { showToast('不合法的網址'); return; }}const data = { name, type: eType.value, date, time: eTime.value, location: eLocation.value.trim(), fee: eFee.value.trim(), ...urlFields, desc: eDesc.value.trim(), notes: eNotes.value.trim(), tags };
 if (editingId) { const idx = events.findIndex(ev => ev.id === editingId); if (idx !== -1) events[idx] = { ...events[idx], ...data }; }
 else { data.id = activeTab[0]+Date.now().toString(36)+Math.random().toString(36).slice(2,6); events.push(data); }
 saveEvents(); closeEditModal(); renderView(); updateBadges();
