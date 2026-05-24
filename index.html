@@ -569,9 +569,11 @@ detailHtml += `<a href="${sanitize(ev.link)}" target="_blank" rel="noopener nore
 if (ev.fb) detailHtml += `<a href="${sanitize(ev.fb)}" target="_blank" rel="noopener noreferrer" class="social-link fb">📘 Facebook</a>`;
 if (ev.ig) detailHtml += `<a href="${sanitize(ev.ig)}" target="_blank" rel="noopener noreferrer" class="social-link ig">📷 Instagram</a>`;
 if (ev.x) detailHtml += `<a href="${sanitize(ev.x)}" target="_blank" rel="noopener noreferrer" class="social-link x">𝕏 X (Twitter)</a>`;
-document.getElementById('detailLink').innerHTML = detailHtml
-? `<div style="display:flex;flex-wrap:wrap;gap:.5rem">${detailHtml}</div>`
-: `<div style="display:flex;flex-wrap:wrap;gap:.5rem">
+if (!detailHtml) {
+detailHtml = `<a href="https://www.google.com/search?q=${encodeURIComponent(ev.name+' 台灣')}" target="_blank" rel="noopener noreferrer" class="social-link" style="background:#666">🔍 Google 搜尋</a>`;
+if (ev.source) detailHtml += `<div style="color:var(--muted);font-size:.78rem;width:100%;margin-top:4px">📌 資料來源：${ev.source}</div>`;
+}
+document.getElementById('detailLink').innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:.5rem">${detailHtml}</div>`
 <a href="https:
 <a href="https:
 <a href="https:
