@@ -569,8 +569,8 @@ if (ev.fb) detailHtml += `<a href="${sanitize(ev.fb)}" target="_blank" rel="noop
 if (ev.ig) detailHtml += `<a href="${sanitize(ev.ig)}" target="_blank" rel="noopener noreferrer" class="social-link ig">📷 Instagram</a>`;
 if (ev.x) detailHtml += `<a href="${sanitize(ev.x)}" target="_blank" rel="noopener noreferrer" class="social-link x">𝕏 X (Twitter)</a>`;
 if (!detailHtml) {
-detailHtml = `<a href="https://www.google.com/search?q=${encodeURIComponent(ev.name+' 台灣')}" target="_blank" rel="noopener noreferrer" class="social-link" style="background:#666">🔍 Google 搜尋</a>`;
-if (ev.source) detailHtml += `<div style="color:var(--muted);font-size:.78rem;width:100%;margin-top:4px">📌 資料來源：${sanitize(ev.source)}</div>`;
+detailHtml = `<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0">尚未有連結，僅供參考</div>`;
+if (ev.source) detailHtml += `<div style="color:var(--muted);font-size:.78rem;width:100%;margin-top:2px">📌 資料來源：${sanitize(ev.source)}</div>`;
 }
 document.getElementById('detailLink').innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:.5rem">${detailHtml}</div>`
 
