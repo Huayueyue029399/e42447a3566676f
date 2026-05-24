@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -313,7 +313,7 @@ let selectedTags = new Set();
 let selectedMainTag = null;
 function getTabConfig() { return TABS[activeTab]; }
 function trashKey() { return activeTab + '_trash'; }function safeJSON(key, fallback) {try { const s = localStorage.getItem(key); if (s) { const d = JSON.parse(s); return d; } } catch (e) { console.warn('Corrupted localStorage key:', key, e); showToast('⚠️ 部分資料已損毀，已自動重置'); }return fallback;}function safeSetItem(key, value) {try { localStorage.setItem(key, value); return true; } catch (e) {if (e.name === 'QuotaExceededError' || e.code === 22) { showToast('⚠️ 儲存空間已滿，無法儲存資料'); }else { console.warn('localStorage error:', key, e); showToast('⚠️ 儲存時發生錯誤'); }return false;}}function loadEvents() {
-const cfg = getTabConfig();try { const s = localStorage.getItem(cfg.key); if (s) { events = JSON.parse(s); } else { events = [...EVENTS_DATA[activeTab]]; saveEvents(); } } catch (_) { events = [...EVENTS_DATA[activeTab]]; saveEvents(); }events.forEach(e => { if (!e.tags) e.tags = [e.type || '其他']; });rebuildCategories();}
+const cfg = getTabConfig();try { const s = localStorage.getItem(cfg.key); if (s) { events = JSON.parse(s); } else { events = [...EVENTS_DATA[activeTab]]; saveEvents(); } } catch (_) { events = [...EVENTS_DATA[activeTab]]; saveEvents(); }events.forEach(e => { if (!e.tags) e.tags = [e.type || '其他']; }); renderCacheKey = '';rebuildCategories();}
 function saveEvents() {const cfg = getTabConfig();safeSetItem(cfg.key, JSON.stringify(events));rebuildCategories();}
 function loadTrash() {
 try { const s = localStorage.getItem(trashKey()); if (s) trashBin = JSON.parse(s); else trashBin = []; } catch (_) { trashBin = []; }
@@ -340,7 +340,7 @@ function tagCount(tag) {
 return events.filter(e => (e.tags||[]).includes(tag)).length;
 }
 function mainTagCount(main) {
-const subs = CATEGORIES[main].sub;
+const subs = CATEGORIES[main]?.sub || [];
 return events.filter(e => (e.tags||[]).some(t => t === main || subs.includes(t))).length;
 }
 function updateFilterOptions() {
@@ -371,7 +371,7 @@ function buildSubRow() {
 const subRow = document.getElementById('tagSubRow');
 subRow.innerHTML = '';
 if (!selectedMainTag) return;
-const subs = CATEGORIES[selectedMainTag].sub;
+const subs = CATEGORIES[selectedMainTag]?.sub || [];
 subs.forEach(s => {
 const cnt = tagCount(s);
 const chip = document.createElement('button');
@@ -426,7 +426,7 @@ if (selectedMainTag === null && selectedTags.size === 0) return true;
 const eTags = e.tags || [e.type || ''];
 if (selectedTags.size > 0) return eTags.some(t => selectedTags.has(t));
 if (selectedMainTag) {
-const subs = CATEGORIES[selectedMainTag].sub;
+const subs = CATEGORIES[selectedMainTag]?.sub || [];
 return eTags.some(t => t === selectedMainTag || subs.includes(t));
 }
 return true;
@@ -445,7 +445,7 @@ return a.date.localeCompare(b.date);
 });
 return f;
 }
-let renderCache = {};
+
 let renderCacheKey = '';
 function renderView() {
 const newKey = activeTab + '_' + [...selectedTags].sort().join(',') + '_' + selectedMainTag + '_' + document.getElementById('sortBy').value + '_' + document.getElementById('searchInput').value + '_' + showingFavorites;
@@ -523,7 +523,7 @@ renderView(); updateBadges();
 });
 }
 let cardObserver = null;
-function observeCards() {
+function observeCards() { if (!("IntersectionObserver" in window)) return;
 if (cardObserver) cardObserver.disconnect();
 cardObserver = new IntersectionObserver(entries => {
 entries.forEach(entry => {
@@ -561,7 +561,6 @@ document.getElementById('detailNotes').innerHTML = ev.notes ? sanitize(ev.notes)
 const img = document.getElementById('detailImg');
 if (ev.image) { img.style.backgroundImage = `url(${JSON.stringify(ev.image)})`; img.textContent = ''; img.style.background = ''; img.className = 'detail-img'; }
 else { img.style.backgroundImage = ''; img.className = 'detail-img card-grad grad-'+ev.type; img.textContent = ev.type; }
-const q = encodeURIComponent(ev.name);
 let detailHtml = '';
 if (ev.link) {
 detailHtml += `<a href="${sanitize(ev.link)}" target="_blank" rel="noopener noreferrer" class="social-link" style="background:var(--primary)">🔗 官方網站</a>`;
@@ -571,7 +570,7 @@ if (ev.ig) detailHtml += `<a href="${sanitize(ev.ig)}" target="_blank" rel="noop
 if (ev.x) detailHtml += `<a href="${sanitize(ev.x)}" target="_blank" rel="noopener noreferrer" class="social-link x">𝕏 X (Twitter)</a>`;
 if (!detailHtml) {
 detailHtml = `<a href="https://www.google.com/search?q=${encodeURIComponent(ev.name+' 台灣')}" target="_blank" rel="noopener noreferrer" class="social-link" style="background:#666">🔍 Google 搜尋</a>`;
-if (ev.source) detailHtml += `<div style="color:var(--muted);font-size:.78rem;width:100%;margin-top:4px">📌 資料來源：${ev.source}</div>`;
+if (ev.source) detailHtml += `<div style="color:var(--muted);font-size:.78rem;width:100%;margin-top:4px">📌 資料來源：${sanitize(ev.source)}</div>`;
 }
 document.getElementById('detailLink').innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:.5rem">${detailHtml}</div>`
 
@@ -714,7 +713,7 @@ function downloadIcal(ev) {
 const d = ev.date.replace(/-/g,'');
 const t = (ev.time || '1000').replace(':','');
 const dtStart = d + 'T' + t + '00';
-const dtEnd = d + 'T' + String(parseInt(t.slice(0,2))+2).padStart(2,'0') + t.slice(2) + '00';
+const endH = parseInt(t.slice(0,2))+2; const endD = endH >= 24 ? String(endH-24).padStart(2,'0') : String(endH).padStart(2,'0'); const dtEnd = (endH >= 24 ? String(parseInt(d)+1) : d) + 'T' + endD + t.slice(2) + '00';
 const ics = [
 'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TaiwanEvents//TW',
 'BEGIN:VEVENT',
@@ -872,7 +871,7 @@ window.addEventListener('load', () => {
 navigator.serviceWorker.register('sw.js').catch(() => {});
 });
 }
-document.getElementById('backupBtn').addEventListener('click', () => {
+document.getElementById('backupBtn').addEventListener('click', () => { if (!isAdmin) return;
 const data = {};
 Object.keys(TABS).forEach(t => {
 try { const s = localStorage.getItem(TABS[t].key); data[t] = s ? JSON.parse(s) : []; } catch(_) { data[t] = []; }
@@ -886,10 +885,10 @@ link.click();
 URL.revokeObjectURL(link.href);
 showToast('資料已備份');
 });
-document.getElementById('restoreBtn').addEventListener('click', () => {
+document.getElementById('restoreBtn').addEventListener('click', () => { if (!isAdmin) return;
 document.getElementById('restoreInput').click();
 });
-document.getElementById('restoreInput').addEventListener('change', e => {
+document.getElementById('restoreInput').addEventListener('change', e => { if (!isAdmin) return;
 const file = e.target.files[0];
 if (!file) return;
 const reader = new FileReader();
@@ -908,12 +907,12 @@ e.target.value = '';
 });
 function purgeTrash() {
 loadTrash();
-const cutoff = Date.now() - 30000;
+const cutoff = Date.now() - 2592000000;
 const before = trashBin.length;
 trashBin = trashBin.filter(t => t.time > cutoff);
 if (trashBin.length !== before) saveTrash();
 }
-document.getElementById('trashBtn').addEventListener('click', () => {
+document.getElementById('trashBtn').addEventListener('click', () => { if (!isAdmin) return;
 loadTrash();
 if (!trashBin.length) { showToast('垃圾桶是空的'); return; }
 const names = trashBin.map(t => '• '+t.event.name).join('\n');
@@ -990,7 +989,7 @@ checkHash();
 window.addEventListener('hashchange', checkHash);</script>
 
 <script>
-(()=>{document.addEventListener('contextmenu',function(e){e.preventDefault()});document.addEventListener('keydown',function(e){if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='i'||e.key==='J'||e.key==='j'||e.key==='C'||e.key==='c'))||(e.ctrlKey&&e.key==='u')){e.preventDefault()}});let c=0;document.addEventListener('keydown',function(e){if(e.key==='F12'){c++;if(c>5){document.body.innerHTML=''}}else{c=0}});console.log('%c\ud83d\udeab','font-size:50px');console.log('%cDO NOT paste any code here','font-size:20px')})();
+(()=>{document.addEventListener('contextmenu',function(e){e.preventDefault()});document.addEventListener('keydown',function(e){if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='i'||e.key==='J'||e.key==='j'||e.key==='C'||e.key==='c'))||(e.ctrlKey&&e.key==='u')){e.preventDefault()}});let c=0;document.addEventListener('keydown',function(e){if(e.key==='F12'){c++;if(c>5){document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#1a2744;color:#fff;font-family:sans-serif;font-size:1.2rem;text-align:center;padding:2rem"><div><h1>🔒</h1><p style="margin-top:1rem">偵測到開發者工具，基於安全考量已封鎖頁面。</p><p style="margin-top:.5rem;opacity:.6;font-size:.9rem">請重新整理頁面繼續瀏覽。</p></div></div>'}}else{c=0}});console.log('%c\ud83d\udeab','font-size:50px');console.log('%cDO NOT paste any code here','font-size:20px')})();
 </script>
 </body>
 </html>

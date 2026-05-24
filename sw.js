@@ -3,7 +3,7 @@
  * 離線快取，提升載入速度與 PWA 支援
  */
 const CACHE = 'tw-events-v1';
-const URLS = ['tw-acg-events.html'];
+const URLS = ['index.html', 'events.js?v=2', 'manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(URLS)).then(() => self.skipWaiting()));

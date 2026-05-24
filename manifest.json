@@ -2,7 +2,7 @@
   "name": "台灣活動總覽 — ACG・成人展",
   "short_name": "活動總覽",
   "description": "台灣 ACG 與成人展活動一覽，管理與瀏覽各類活動資訊",
-  "start_url": "/tw-acg-events.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f1ec",
   "theme_color": "#1a2744",
