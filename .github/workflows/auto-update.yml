@@ -1,0 +1,32 @@
+name: Auto-Update Events
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-events:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run event sync script
+        shell: pwsh
+        run: |
+          & "./scripts/check-doujin.ps1" -EventsJsPath "$pwd/events.js"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "Auto-Update Bot"
+          git config user.email "auto-update@bot.local"
+          git add events.js
+          if (!(git diff --cached --quiet)) then
+            git commit -m "auto: sync events data"
+            git push
+          else
+            echo "No changes to commit"
+          fi
