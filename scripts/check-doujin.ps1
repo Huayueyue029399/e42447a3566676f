@@ -1,13 +1,14 @@
-param(
+﻿param(
     [string]$EventsJsPath = "$env:USERPROFILE\events.js",
     [string]$DoujinUrl = "https://www.doujin.com.tw/events/alist",
     [string]$TaeUrl = "https://taiwanadultexpo.com/",
     [string]$TreUrl = "https://adultexpo.com.tw/",
-    [string]$LogPath = "$env:RUNNER_TEMP\doujin-sync.log",
+    [string]$LogPath = "$env:USERPROFILE\.local\share\opencode\logs\doujin-sync.log",
     [switch]$Simulate,
     [switch]$AdultOnly
 )
 
+# ── Setup ──
 $LogDir = Split-Path $LogPath -Parent
 if (-not (Test-Path $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Force | Out-Null }
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -148,6 +149,9 @@ if (-not (Test-Path $EventsJsPath)) {
     exit 1
 }
 
+# ══════════════════════════════════════════════
+# ACG sync (skip if -AdultOnly)
+# ══════════════════════════════════════════════
 if (-not $AdultOnly) {
 
 try {
@@ -209,6 +213,7 @@ if ($Simulate) {
     Write-Log "SIMULATE: ACG insert skipped"
     $ok = $true
 } else {
+    # Build entries and insert
     $nextId = 1
     $max = 0
     foreach ($im in [regex]::Matches($existingContent, "id:'(\d+)'")) {
@@ -299,7 +304,9 @@ if ($Simulate) {
 
 } # end -not $AdultOnly
 
-# Adult source check
+# ══════════════════════════════════════════════
+# Adult source check (always runs)
+# ══════════════════════════════════════════════
 Write-Log "--- Checking adult event sources ---"
 Update-AdultEvent -EventId "a11" -Url $TaeUrl -NamePattern "TAE" -LogLabel "TAE"
 Update-AdultEvent -EventId "a12" -Url $TreUrl -NamePattern "TRE" -LogLabel "TRE"
