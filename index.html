@@ -13,278 +13,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗓️</text></svg>">
 <title>台灣活動總覽 — ACG・成人展</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  :root {
-    --bg: #f5f1ec;
-    --card: #fff;
-    --text: #1c1814;
-    --muted: #8a847c;
-    --line: #e5e0da;
-    --radius: 14px;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,.05);
-    --shadow-md: 0 4px 16px rgba(0,0,0,.07);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,.1);
-    --font: 'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
-  }
-
-  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; transition: background .4s; }
-  body::before { content:''; position:fixed; inset:0; background-image:radial-gradient(var(--line) 1px,transparent 1px); background-size:24px 24px; opacity:.35; pointer-events:none; z-index:-1; }
-
-  .theme-acg {
-    --primary: #1a2744;
-    --primary-light: #2d4070;
-    --accent: #c9953c;
-    --accent-soft: #e8d4a8;
-    --header-from: #1a2744;
-    --header-to: #2d4070;
-    --glow: rgba(201,149,60,.2);
-  }
-
-  .theme-adult {
-    --primary: #2d1b36;
-    --primary-light: #4a2854;
-    --accent: #d44a7a;
-    --accent-soft: #f0c0d0;
-    --header-from: #2d1b36;
-    --header-to: #4a2854;
-    --glow: rgba(212,74,122,.2);
-  }
-
-  #authOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(6px); }
-  #authOverlay.show { display:flex; }
-  .auth-box { background:var(--card); border-radius:20px; padding:2.5rem; width:92%; max-width:400px; text-align:center; box-shadow:var(--shadow-lg); animation:fadeUp .35s ease; }
-  .auth-box h2 { font-size:1.3rem; margin-bottom:.3rem; font-weight:700; }
-  .auth-box p { font-size:.85rem; color:var(--muted); margin-bottom:1.5rem; }
-  .auth-box input { width:100%; padding:.7rem 1rem; border:2px solid var(--line); border-radius:10px; font-size:.95rem; outline:none; transition:border-color .25s; font-family:var(--font); }
-  .auth-box input:focus { border-color:var(--accent); }
-  .auth-box button { width:100%; margin-top:.8rem; padding:.7rem; border:none; border-radius:10px; background:var(--primary); color:#fff; font-size:.95rem; font-weight:600; cursor:pointer; transition:background .25s,transform .15s; font-family:var(--font); }
-  .auth-box button:hover { background:var(--primary-light); transform:translateY(-1px); }
-  .auth-box .auth-skip { display:inline-block; margin-top:1rem; font-size:.82rem; color:var(--muted); cursor:pointer; border-bottom:1px solid transparent; transition:all .2s; }
-  .auth-box .auth-skip:hover { color:var(--accent); border-bottom-color:var(--accent); }
-  .auth-error { color:#d44a4a; font-size:.82rem; margin-top:.6rem; display:none; }
-  #app { filter:none; transition:filter .35s; }
-  #app.blurred { filter:blur(4px); pointer-events:none; }
-
-  header { background:linear-gradient(135deg,var(--header-from),var(--header-to)); color:#fff; padding:2.5rem 1.5rem 2rem; text-align:center; position:relative; overflow:hidden; }
-  header::before { content:''; position:absolute; top:-60%; right:-20%; width:500px; height:500px; background:radial-gradient(circle,rgba(255,255,255,.04) 0%,transparent 70%); pointer-events:none; }
-  header::after { content:''; position:absolute; bottom:-2px; left:0; right:0; height:40px; background:var(--bg); border-radius:50% 50% 0 0; transition:background .4s; }
-  header h1 { font-size:2.2rem; font-weight:900; letter-spacing:4px; position:relative; }
-  header p { margin-top:.4rem; opacity:.75; font-size:.9rem; letter-spacing:1px; position:relative; }
-  .header-actions { position:absolute; top:1rem; right:1.5rem; display:flex; gap:.5rem; z-index:2; }
-  .header-actions button { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.15); color:#fff; padding:.35rem .9rem; border-radius:20px; cursor:pointer; font-size:.78rem; transition:all .25s; backdrop-filter:blur(6px); font-family:var(--font); }
-  .header-actions button:hover { background:rgba(255,255,255,.25); }
-  .header-actions button.active { background:rgba(255,255,255,.9); color:var(--primary); font-weight:600; }
-
-  .tab-bar { display:flex; max-width:1480px; margin:0 auto; padding:.75rem 1.25rem 0; gap:.25rem; }
-  .tab-btn { flex:1; padding:.8rem 1rem; border:none; background:transparent; font-size:.92rem; font-weight:500; cursor:pointer; border-radius:14px 14px 0 0; transition:all .3s; color:var(--muted); font-family:var(--font); position:relative; letter-spacing:1px; }
-  .tab-btn:hover { color:var(--text); background:rgba(255,255,255,.4); }
-  .tab-btn.active { background:var(--card); color:var(--accent); font-weight:700; box-shadow:0 -2px 12px rgba(0,0,0,.04); }
-  .tab-btn .tab-icon { margin-right:.4rem; }
-  .tab-btn .tab-badge { display:inline-block; font-size:.65rem; background:var(--accent); color:#fff; border-radius:20px; padding:1px 8px; margin-left:.4rem; vertical-align:middle; font-weight:600; }
-
-  .layout { max-width:1480px; margin:0 auto; padding:0 1.25rem 1.25rem; display:flex; gap:1.25rem; align-items:flex-start; }
-  .layout-left { flex:1; min-width:0; display:flex; flex-direction:column; gap:1rem; }
-  .layout-right { width:580px; flex-shrink:0; position:sticky; top:1.25rem; display:flex; flex-direction:column; gap:1rem; }
-
-  .controls { display:flex; flex-wrap:wrap; gap:.6rem; background:var(--card); padding:.85rem 1rem; border-radius:var(--radius); box-shadow:var(--shadow-sm); }
-  .controls select, .controls input { padding:.5rem .75rem; border:2px solid var(--line); border-radius:10px; font-size:.85rem; background:var(--bg); flex:1; min-width:110px; outline:none; transition:border-color .25s; font-family:var(--font); color:var(--text); }
-  .controls select:focus, .controls input:focus { border-color:var(--accent); }
-  .controls .btn { padding:.5rem 1.2rem; border:none; border-radius:10px; background:var(--primary); color:#fff; cursor:pointer; font-size:.85rem; font-weight:600; transition:all .25s; white-space:nowrap; font-family:var(--font); }
-  .controls .btn:hover { background:var(--primary-light); transform:translateY(-1px); box-shadow:0 4px 12px var(--glow); }
-  .controls .btn:active { transform:translateY(0); }
-  .controls .btn:disabled { opacity:.35; cursor:not-allowed; transform:none; box-shadow:none; }
-  .controls .fav-btn { background:transparent; border:2px solid var(--line); color:var(--muted); padding:.5rem .7rem; border-radius:10px; cursor:pointer; font-size:.85rem; transition:all .25s; font-family:var(--font); white-space:nowrap; }
-  .controls .fav-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(201,149,60,.08); }
-  .theme-adult .controls .fav-btn.active { background:rgba(212,74,122,.08); }
-
-  .tag-filters { display:flex; flex-direction:column; gap:.4rem; }
-  .tag-main-row, .tag-sub-row { display:flex; flex-wrap:wrap; gap:.35rem; }
-  .tag-chip { font-family:var(--font); font-size:.78rem; padding:.3rem .7rem; border:1.5px solid var(--line); border-radius:20px; background:var(--card); color:var(--text); cursor:pointer; transition:all .2s; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,.03); }
-  .tag-chip:hover { border-color:var(--accent); background:rgba(201,149,60,.08); transform:translateY(-1px); }
-  .theme-adult .tag-chip:hover { background:rgba(212,74,122,.08); }
-  .tag-chip:active { transform:translateY(0); }
-  .tag-chip.active { border-color:var(--accent); background:var(--accent); color:#fff; font-weight:600; box-shadow:0 2px 8px var(--glow); }
-  .tag-chip.tag-all.active { border-color:var(--primary); background:var(--primary); color:#fff; }
-  .tag-chip.tag-main { font-size:.82rem; font-weight:600; padding:.35rem .85rem; }
-  .tag-chip.tag-sub { font-size:.75rem; opacity:.85; }
-  .tag-sub-row { margin-top:.15rem; }
-  .chip-count { display:inline-block; font-size:.62rem; font-weight:600; background:var(--line); color:var(--muted); border-radius:8px; padding:0 5px; margin-left:2px; line-height:1.5; vertical-align:middle; }
-  .tag-chip.active .chip-count { background:rgba(255,255,255,.2); color:rgba(255,255,255,.85); }
-  .tag-chip.tag-all .chip-count { background:transparent; color:inherit; font-size:.62rem; font-weight:600; }
-
-  .section { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:.8rem 1rem 1rem; }
-  .section-title { font-size:1rem; font-weight:700; margin-bottom:.7rem; padding-bottom:.5rem; border-bottom:2px solid var(--line); display:flex; align-items:center; gap:.5rem; }
-  .section-title .count { font-size:.78rem; color:var(--muted); font-weight:400; margin-left:auto; }
-  .today-section { border-left:3px solid var(--accent); }
-  .today-section .section-title { color:var(--accent); }
-  .event-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:.8rem; }
-
-  .event-card { background:var(--card); border-radius:12px; box-shadow:var(--shadow-sm); transition:all .4s cubic-bezier(.22,.61,.36,1); cursor:pointer; overflow:hidden; border:1px solid var(--line); position:relative; opacity:0; transform:translateY(16px); }
-  .event-card.visible { opacity:1; transform:translateY(0); }
-  .event-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:var(--accent-soft); }
-  .event-card:hover.visible { transform:translateY(-4px); }
-  .event-card.hash-target { animation:hashGlow 1.2s ease; }
-  @keyframes hashGlow { 0%,100%{box-shadow:0 0 0 0 var(--glow)} 50%{box-shadow:0 0 0 4px var(--accent),0 4px 20px var(--glow)} }
-
-  .card-img { width:100%; height:145px; background-size:cover; background-position:center; position:relative; overflow:hidden; }
-  .card-img .badge { position:absolute; top:10px; left:10px; font-size:.6rem; padding:3px 10px; border-radius:20px; font-weight:700; background:rgba(0,0,0,.5); color:#fff; backdrop-filter:blur(8px); letter-spacing:.5px; z-index:2; }
-  .card-img .card-del-btn { position:absolute; top:10px; right:10px; background:rgba(0,0,0,.35); border:none; color:#fff; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:.85rem; display:none; align-items:center; justify-content:center; transition:all .25s; opacity:0; transform:scale(.8); z-index:3; }
-  .card-img .card-del-btn:hover { background:#d44a4a; transform:scale(1.1); }
-  .is-admin .card-img .card-del-btn { display:flex; }
-  .is-admin .event-card:hover .card-del-btn { opacity:1; transform:scale(1); }
-  .card-img .card-fav { position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,.3); border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:.8rem; display:flex; align-items:center; justify-content:center; transition:all .25s; z-index:2; backdrop-filter:blur(4px); }
-  .card-img .card-fav:hover { transform:scale(1.15); }
-  .card-img .card-fav.faved { background:rgba(228,61,90,.7); }
-  .card-img.lazy-load { background-image:none !important; background-color:var(--bg); }
-  .card-img.lazy-load .card-grad { display:flex; }
-  .card-body { padding:.75rem .85rem .8rem; }
-  .card-body h3 { font-size:.88rem; font-weight:600; margin-bottom:.3rem; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .card-body .meta { font-size:.75rem; color:var(--muted); margin-bottom:.1rem; }
-  .card-body .meta .past-label { color:#d44a4a; font-weight:600; }
-  .card-body .meta .fee-tag { display:inline-block; padding:1px 6px; border-radius:4px; background:var(--accent-soft); color:var(--text); font-weight:600; font-size:.7rem; }
-  .card-body .date-row { display:flex; align-items:center; gap:.35rem; margin-bottom:.25rem; }
-  .card-body .date-badge { display:inline-block; font-size:.65rem; font-weight:700; padding:2px 8px; border-radius:6px; background:var(--accent); color:#fff; }
-  .card-body .date-badge.past { background:var(--line); color:var(--muted); }
-  .card-body .date-badge.today-badge { background:var(--primary); }
-  .empty-state { text-align:center; padding:2.5rem 1rem; color:var(--muted); }
-  .empty-state .icon { font-size:2.5rem; margin-bottom:.4rem; opacity:.5; }
-
-  .grad-同人誌即賣會 { background:linear-gradient(135deg,#f093fb,#f5576c,#f093fb); background-size:200% 200%; }
-  .grad-動漫展 { background:linear-gradient(135deg,#4facfe,#00f2fe,#4facfe); background-size:200% 200%; }
-  .grad-COSPLAY { background:linear-gradient(135deg,#a18cd1,#fbc2eb,#a18cd1); background-size:200% 200%; }
-  .grad-ACG音樂會 { background:linear-gradient(135deg,#ff0844,#ffb199,#ff0844); background-size:200% 200%; }
-  .grad-座談講座 { background:linear-gradient(135deg,#667eea,#764ba2,#667eea); background-size:200% 200%; }
-  .grad-市集 { background:linear-gradient(135deg,#43e97b,#38f9d7,#43e97b); background-size:200% 200%; }
-  .grad-其他 { background:linear-gradient(135deg,#a8a8a8,#e0e0e0,#a8a8a8); background-size:200% 200%; }
-  .grad-成人展 { background:linear-gradient(135deg,#2d1b36,#c9407a,#2d1b36); background-size:200% 200%; }
-  .grad-同人創作 { background:linear-gradient(135deg,#4a0033,#ff6b9d,#4a0033); background-size:200% 200%; }
-  .grad-情趣用品 { background:linear-gradient(135deg,#1a0a2e,#e74c9e,#1a0a2e); background-size:200% 200%; }
-  .grad-成人市集 { background:linear-gradient(135deg,#2c1810,#e8916a,#2c1810); background-size:200% 200%; }
-
-  @keyframes gradShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-  .card-grad { width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; animation:gradShift 8s ease infinite; }
-  .card-grad::before { content:''; position:absolute; inset:0; background:rgba(0,0,0,.18); }
-  .card-grad::after { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 60%); pointer-events:none; }
-  .card-grad-text { color:#fff; font-size:.72rem; font-weight:700; letter-spacing:2px; text-shadow:0 2px 12px rgba(0,0,0,.35); z-index:1; text-align:center; padding:0 1rem; line-height:1.4; }
-
-  .calendar-wrap { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden; }
-  .calendar-head { background:var(--primary); color:#fff; padding:.7rem 1rem; display:flex; justify-content:space-between; align-items:center; gap:.5rem; }
-  .calendar-head h2 { font-size:.9rem; font-weight:600; white-space:nowrap; }
-  .calendar-head .nav-btn { background:rgba(255,255,255,.15); border:none; color:#fff; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:.8rem; transition:all .25s; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
-  .calendar-head .nav-btn:hover { background:rgba(255,255,255,.3); transform:scale(1.08); }
-  .calendar-head .nav-label { font-size:.6rem; opacity:.6; font-weight:400; }
-  .cal-scroll { overflow-x:auto; padding:.6rem .6rem .7rem; display:flex; gap:.45rem; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; }
-  .cal-scroll::-webkit-scrollbar { height:6px; }
-  .cal-scroll::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
-  .cal-scroll::-webkit-scrollbar-track { background:transparent; }
-  .cal-month-col { flex-shrink:0; width:320px; border-radius:var(--radius-md); padding:.75rem .8rem .7rem; background:var(--bg); border:1px solid var(--line); transition:all .3s; }
-  .cal-month-col.is-current { background:rgba(201,149,60,.08); border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
-  .theme-adult .cal-month-col.is-current { background:rgba(212,74,122,.08); border-color:var(--accent); }
-  .cal-month-title { font-size:.78rem; font-weight:700; text-align:center; margin-bottom:.4rem; color:var(--text); letter-spacing:.5px; }
-  .cal-month-title .event-count { font-weight:400; color:var(--muted); font-size:.65rem; }
-  .cal-month-weekdays { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:.56rem; font-weight:600; color:#bbb; margin-bottom:.25rem; }
-  .cal-month-weekdays span:first-child, .cal-month-weekdays span:last-child { color:#d44a4a; }
-  .cal-month-days { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; }
-  .cal-month-days .day-cell { aspect-ratio:1; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:.62rem; color:var(--text); position:relative; transition:background .2s; }
-  .cal-month-days .day-cell.other-month { color:var(--line); }
-  .cal-month-days .day-cell.has-event::after { content:''; position:absolute; bottom:2px; width:5px; height:5px; border-radius:50%; background:var(--accent); }
-  .cal-month-days .day-cell.today { font-weight:700; color:var(--accent); background:rgba(201,149,60,.1); border-radius:50%; }
-  .theme-adult .cal-month-days .day-cell.today { background:rgba(212,74,122,.12); }
-  .cal-month-bar { display:flex; gap:2px; margin-bottom:.5rem; height:5px; }
-  .cal-month-bar .bar-seg { flex:1; border-radius:2px; background:var(--line); transition:background .3s; }
-  .cal-month-bar .bar-seg.has-event { background:var(--accent); }
-  .cal-fade-enter { animation:calFadeIn .3s ease; }
-  @keyframes calFadeIn { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
-
-  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1000; justify-content:center; align-items:center; backdrop-filter:blur(4px); }
-  .modal-overlay.show { display:flex; }
-  .modal-overlay.show .modal { animation:fadeUp .3s ease; }
-  .modal { background:var(--card); border-radius:20px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); position:relative; }
-  .modal-detail { max-width:560px; }
-  .modal-edit { max-width:500px; padding:2rem; }
-  .modal-close { position:absolute; top:14px; right:14px; background:rgba(0,0,0,.06); border:none; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; transition:all .25s; z-index:2; color:var(--text); }
-  .modal-close:hover { background:rgba(0,0,0,.12); transform:rotate(90deg); }
-  .detail-img { width:100%; height:210px; background-size:cover; background-position:center; border-radius:20px 20px 0 0; display:flex; align-items:center; justify-content:center; font-size:.9rem; color:rgba(255,255,255,.6); font-weight:700; position:relative; }
-  .detail-body { padding:1.25rem 1.5rem 1.5rem; }
-  .detail-body h2 { font-size:1.25rem; font-weight:700; margin-bottom:.6rem; line-height:1.4; }
-  .detail-meta { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-bottom:.8rem; }
-  .detail-meta .dm-item { font-size:.82rem; color:var(--muted); padding:.3rem 0; }
-  .detail-meta .dm-item strong { color:var(--text); display:inline-block; min-width:3.5em; font-weight:600; }
-  .detail-desc { font-size:.88rem; color:var(--text); line-height:1.7; margin-bottom:1rem; opacity:.85; }
-  .detail-notes { background:var(--bg); border-radius:12px; padding:.8rem 1rem; margin-bottom:1rem; border-left:3px solid var(--accent); }
-  .detail-notes h3 { font-size:.85rem; font-weight:700; margin-bottom:.4rem; color:var(--accent); }
-  .detail-notes p { font-size:.82rem; color:var(--text); line-height:1.7; opacity:.8; }
-  .detail-link a { display:inline-flex; align-items:center; gap:.4rem; padding:.55rem 1.2rem; background:var(--primary); color:#fff; text-decoration:none; border-radius:10px; font-size:.82rem; font-weight:600; transition:all .25s; }
-  .detail-link a:hover { background:var(--primary-light); transform:translateY(-2px); box-shadow:0 4px 14px var(--glow); }
-  .detail-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.8rem; }
-  .detail-actions button { flex:1; min-width:100px; padding:.5rem .6rem; border:2px solid var(--line); border-radius:10px; background:transparent; color:var(--text); cursor:pointer; font-size:.78rem; font-weight:500; transition:all .25s; font-family:var(--font); }
-  .detail-actions button:hover { border-color:var(--accent); color:var(--accent); background:rgba(201,149,60,.05); }
-  .detail-actions button:active { transform:scale(.97); }
-  .theme-adult .detail-actions button:hover { border-color:var(--accent); color:var(--accent); background:rgba(212,74,122,.05); }
-
-  #editModal h2 { margin-bottom:1.2rem; font-size:1.15rem; }
-  #editModal label { display:block; font-size:.78rem; font-weight:600; margin:.65rem 0 .25rem; color:var(--muted); letter-spacing:.5px; }
-  #editModal input, #editModal select, #editModal textarea { width:100%; padding:.55rem .8rem; border:2px solid var(--line); border-radius:10px; font-size:.85rem; background:var(--bg); outline:none; transition:border-color .25s; font-family:var(--font); color:var(--text); }
-  #editModal input:focus, #editModal select:focus, #editModal textarea:focus { border-color:var(--accent); }
-  #editModal textarea { resize:vertical; min-height:55px; }
-  .form-row { display:flex; gap:.6rem; }
-  .form-row > * { flex:1; }
-  .form-actions { display:flex; gap:.6rem; margin-top:1.2rem; }
-  .form-actions button { flex:1; padding:.55rem; border-radius:10px; border:none; cursor:pointer; font-weight:600; transition:all .25s; font-family:var(--font); }
-  .btn-secondary { background:var(--bg); color:var(--text); }
-  .btn-secondary:hover { background:var(--line); }
-
-  .toast-container { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); z-index:9998; display:flex; flex-direction:column; gap:.5rem; align-items:center; pointer-events:none; }
-  .toast { background:#2d2a24; color:#fff; border-radius:12px; padding:.7rem 1rem .7rem 1.2rem; font-size:.82rem; display:flex; align-items:center; gap:.8rem; box-shadow:0 4px 20px rgba(0,0,0,.25); pointer-events:auto; animation:toastIn .35s ease; max-width:90vw; }
-  .toast.toast-out { animation:toastOut .3s ease forwards; }
-  .toast button { padding:.35rem .8rem; border:none; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; font-weight:600; font-size:.78rem; transition:background .25s; font-family:var(--font); white-space:nowrap; }
-  .toast button:hover { opacity:.85; }
-  @keyframes toastIn { from { opacity:0; transform:translateY(20px) scale(.95); } to { opacity:1; transform:translateY(0) scale(1); } }
-  @keyframes toastOut { from { opacity:1; transform:translateY(0) scale(1); } to { opacity:0; transform:translateY(20px) scale(.95); } }
-
-  footer { text-align:center; padding:1.5rem 1rem; color:var(--muted); font-size:.8rem; border-top:1px solid var(--line); margin-top:1rem; letter-spacing:.5px; }
-  footer .admin-ft { display:none; margin-top:.6rem; gap:.5rem; justify-content:center; }
-  .is-admin footer .admin-ft { display:flex; }
-  footer .admin-ft button { padding:.35rem .8rem; border:1px solid var(--line); border-radius:8px; background:transparent; color:var(--muted); cursor:pointer; font-size:.75rem; font-family:var(--font); transition:all .25s; }
-  footer .admin-ft button:hover { border-color:var(--accent); color:var(--accent); }
-
-  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-
-  @media (max-width:1400px) { .layout-right{width:500px} .cal-month-col{width:280px} }
-  @media (max-width:1100px) { .layout{flex-direction:column} .layout-right{width:100%;position:static} .event-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))} .cal-month-col{width:280px} }
-  @media (max-width:640px) {
-    header h1{font-size:1.4rem;letter-spacing:2px} header{padding:2rem 1rem 1.5rem}
-    .tab-bar{padding:.6rem .8rem 0} .tab-btn{font-size:.82rem;padding:.6rem .6rem}
-    .controls{flex-wrap:wrap} .controls select,.controls input{min-width:0;flex:1 1 45%}
-    .controls .btn,.controls .fav-btn{flex:1 1 auto}
-    .tag-chip{font-size:.72rem;padding:.25rem .55rem} .tag-chip.tag-main{font-size:.76rem;padding:.3rem .65rem}
-    .event-grid{grid-template-columns:1fr} .card-img{height:180px}
-    .detail-meta{grid-template-columns:1fr} .detail-actions{flex-direction:column}
-    .cal-month-col{width:240px} .header-actions{position:static;margin-top:.6rem;justify-content:center}
-    .layout{padding:0 .8rem .8rem} .toast{font-size:.78rem;padding:.6rem .8rem;flex-wrap:wrap;justify-content:center}
-  .social-link { display:inline-flex; align-items:center; gap:.35rem; padding:.5rem 1rem; color:#fff; text-decoration:none; border-radius:10px; font-size:.8rem; font-weight:600; transition:opacity .25s, transform .15s; }
-  .social-link:hover { opacity:.85; transform:translateY(-1px); }
-  .social-link:active { transform:translateY(0); }
-  .social-link.fb { background:#1877f2; }
-  .social-link.google { background:var(--primary); }
-  .social-link.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
-  .social-link.x { background: #000; }
-  }
-  @media print {
-    header{background:#1a2744!important;-webkit-print-color-adjust:exact;print-color-adjust:exact} header::after{display:none}
-    .tab-bar,.controls,.tag-filters,.layout-right,.header-actions,.detail-actions,.toast-container{display:none!important}
-    .layout{display:block} .layout-left{width:100%}
-    .event-card{break-inside:avoid;opacity:1!important;transform:none!important;box-shadow:none!important;border:1px solid #ccc}
-    .section{box-shadow:none;border:1px solid #ddd}
-    .modal-overlay{position:static;background:none;backdrop-filter:none}
-    .modal{box-shadow:none;border:1px solid #ddd;max-height:none;overflow:visible}
-    footer{border-top:1px solid #ccc}
-    .card-img.lazy-load::after{display:none}
-    .event-grid{grid-template-columns:repeat(2,1fr)}
-  }
-</style>
+<style>*{margin:0;padding:0;box-sizing:border-box}:root{--bg:#f5f1ec;--card:#fff;--text:#1c1814;--muted:#8a847c;--line:#e5e0da;--radius:14px;--shadow-sm:0 1px 3px rgba(0,0,0,.05);--shadow-md:0 4px 16px rgba(0,0,0,.07);--shadow-lg:0 8px 32px rgba(0,0,0,.1);--font:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif}body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s}body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:24px 24px;opacity:.35;pointer-events:none;z-index:-1}.theme-acg{--primary:#1a2744;--primary-light:#2d4070;--accent:#c9953c;--accent-soft:#e8d4a8;--header-from:#1a2744;--header-to:#2d4070;--glow:rgba(201,149,60,.2)}.theme-adult{--primary:#2d1b36;--primary-light:#4a2854;--accent:#d44a7a;--accent-soft:#f0c0d0;--header-from:#2d1b36;--header-to:#4a2854;--glow:rgba(212,74,122,.2)}#authOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;justify-content:center;align-items:center;backdrop-filter:blur(6px)}#authOverlay.show{display:flex}.auth-box{background:var(--card);border-radius:20px;padding:2.5rem;width:92%;max-width:400px;text-align:center;box-shadow:var(--shadow-lg);animation:.35s fadeUp}.auth-box h2{font-size:1.3rem;margin-bottom:.3rem;font-weight:700}.auth-box p{font-size:.85rem;color:var(--muted);margin-bottom:1.5rem}.auth-box input{width:100%;padding:.7rem 1rem;border:2px solid var(--line);border-radius:10px;font-size:.95rem;outline:0;transition:border-color .25s;font-family:var(--font)}.auth-box input:focus{border-color:var(--accent)}.auth-box button{width:100%;margin-top:.8rem;padding:.7rem;border:none;border-radius:10px;background:var(--primary);color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .25s,transform .15s;font-family:var(--font)}.auth-box button:hover{background:var(--primary-light);transform:translateY(-1px)}.auth-box .auth-skip{display:inline-block;margin-top:1rem;font-size:.82rem;color:var(--muted);cursor:pointer;border-bottom:1px solid transparent;transition:.2s}.auth-box .auth-skip:hover{color:var(--accent);border-bottom-color:var(--accent)}.auth-error{color:#d44a4a;font-size:.82rem;margin-top:.6rem;display:none}#app{filter:none;transition:filter .35s}#app.blurred{filter:blur(4px);pointer-events:none}header{background:linear-gradient(135deg,var(--header-from),var(--header-to));color:#fff;padding:2.5rem 1.5rem 2rem;text-align:center;position:relative;overflow:hidden}header::before{content:'';position:absolute;top:-60%;right:-20%;width:500px;height:500px;background:radial-gradient(circle,rgba(255,255,255,.04) 0,transparent 70%);pointer-events:none}header::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:40px;background:var(--bg);border-radius:50% 50% 0 0;transition:background .4s}header h1{font-size:2.2rem;font-weight:900;letter-spacing:4px;position:relative}header p{margin-top:.4rem;opacity:.75;font-size:.9rem;letter-spacing:1px;position:relative}.header-actions{position:absolute;top:1rem;right:1.5rem;display:flex;gap:.5rem;z-index:2}.header-actions button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);color:#fff;padding:.35rem .9rem;border-radius:20px;cursor:pointer;font-size:.78rem;transition:.25s;backdrop-filter:blur(6px);font-family:var(--font)}.header-actions button:hover{background:rgba(255,255,255,.25)}.header-actions button.active{background:rgba(255,255,255,.9);color:var(--primary);font-weight:600}.tab-bar{display:flex;max-width:1480px;margin:0 auto;padding:.75rem 1.25rem 0;gap:.25rem}.tab-btn{flex:1;padding:.8rem 1rem;border:none;background:0 0;font-size:.92rem;font-weight:500;cursor:pointer;border-radius:14px 14px 0 0;transition:.3s;color:var(--muted);font-family:var(--font);position:relative;letter-spacing:1px}.tab-btn:hover{color:var(--text);background:rgba(255,255,255,.4)}.tab-btn.active{background:var(--card);color:var(--accent);font-weight:700;box-shadow:0 -2px 12px rgba(0,0,0,.04)}.tab-btn .tab-icon{margin-right:.4rem}.tab-btn .tab-badge{display:inline-block;font-size:.65rem;background:var(--accent);color:#fff;border-radius:20px;padding:1px 8px;margin-left:.4rem;vertical-align:middle;font-weight:600}.layout{max-width:1480px;margin:0 auto;padding:0 1.25rem 1.25rem;display:flex;gap:1.25rem;align-items:flex-start}.layout-left{flex:1;min-width:0;display:flex;flex-direction:column;gap:1rem}.layout-right{width:580px;flex-shrink:0;position:sticky;top:1.25rem;display:flex;flex-direction:column;gap:1rem}.controls{display:flex;flex-wrap:wrap;gap:.6rem;background:var(--card);padding:.85rem 1rem;border-radius:var(--radius);box-shadow:var(--shadow-sm)}.controls input,.controls select{padding:.5rem .75rem;border:2px solid var(--line);border-radius:10px;font-size:.85rem;background:var(--bg);flex:1;min-width:110px;outline:0;transition:border-color .25s;font-family:var(--font);color:var(--text)}.controls input:focus,.controls select:focus{border-color:var(--accent)}.controls .btn{padding:.5rem 1.2rem;border:none;border-radius:10px;background:var(--primary);color:#fff;cursor:pointer;font-size:.85rem;font-weight:600;transition:.25s;white-space:nowrap;font-family:var(--font)}.controls .btn:hover{background:var(--primary-light);transform:translateY(-1px);box-shadow:0 4px 12px var(--glow)}.controls .btn:active{transform:translateY(0)}.controls .btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}.controls .fav-btn{background:0 0;border:2px solid var(--line);color:var(--muted);padding:.5rem .7rem;border-radius:10px;cursor:pointer;font-size:.85rem;transition:.25s;font-family:var(--font);white-space:nowrap}.controls .fav-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(201,149,60,.08)}.theme-adult .controls .fav-btn.active{background:rgba(212,74,122,.08)}.tag-filters{display:flex;flex-direction:column;gap:.4rem}.tag-main-row,.tag-sub-row{display:flex;flex-wrap:wrap;gap:.35rem}.tag-chip{font-family:var(--font);font-size:.78rem;padding:.3rem .7rem;border:1.5px solid var(--line);border-radius:20px;background:var(--card);color:var(--text);cursor:pointer;transition:.2s;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.03)}.tag-chip:hover{border-color:var(--accent);background:rgba(201,149,60,.08);transform:translateY(-1px)}.theme-adult .tag-chip:hover{background:rgba(212,74,122,.08)}.tag-chip:active{transform:translateY(0)}.tag-chip.active{border-color:var(--accent);background:var(--accent);color:#fff;font-weight:600;box-shadow:0 2px 8px var(--glow)}.tag-chip.tag-all.active{border-color:var(--primary);background:var(--primary);color:#fff}.tag-chip.tag-main{font-size:.82rem;font-weight:600;padding:.35rem .85rem}.tag-chip.tag-sub{font-size:.75rem;opacity:.85}.tag-sub-row{margin-top:.15rem}.chip-count{display:inline-block;font-size:.62rem;font-weight:600;background:var(--line);color:var(--muted);border-radius:8px;padding:0 5px;margin-left:2px;line-height:1.5;vertical-align:middle}.tag-chip.active .chip-count{background:rgba(255,255,255,.2);color:rgba(255,255,255,.85)}.tag-chip.tag-all .chip-count{background:0 0;color:inherit;font-size:.62rem;font-weight:600}.section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:.8rem 1rem 1rem}.section-title{font-size:1rem;font-weight:700;margin-bottom:.7rem;padding-bottom:.5rem;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:.5rem}.section-title .count{font-size:.78rem;color:var(--muted);font-weight:400;margin-left:auto}.today-section{border-left:3px solid var(--accent)}.today-section .section-title{color:var(--accent)}.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.8rem}.event-card{background:var(--card);border-radius:12px;box-shadow:var(--shadow-sm);transition:.4s cubic-bezier(.22,.61,.36,1);cursor:pointer;overflow:hidden;border:1px solid var(--line);position:relative;opacity:0;transform:translateY(16px)}.event-card.visible{opacity:1;transform:translateY(0)}.event-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--accent-soft)}.event-card:hover.visible{transform:translateY(-4px)}.event-card.hash-target{animation:1.2s hashGlow}@keyframes hashGlow{0%,100%{box-shadow:0 0 0 0 var(--glow)}50%{box-shadow:0 0 0 4px var(--accent),0 4px 20px var(--glow)}}.card-img{width:100%;height:145px;background-size:cover;background-position:center;position:relative;overflow:hidden}.card-img .badge{position:absolute;top:10px;left:10px;font-size:.6rem;padding:3px 10px;border-radius:20px;font-weight:700;background:rgba(0,0,0,.5);color:#fff;backdrop-filter:blur(8px);letter-spacing:.5px;z-index:2}.card-img .card-del-btn{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.35);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:.85rem;display:none;align-items:center;justify-content:center;transition:.25s;opacity:0;transform:scale(.8);z-index:3}.card-img .card-del-btn:hover{background:#d44a4a;transform:scale(1.1)}.is-admin .card-img .card-del-btn{display:flex}.is-admin .event-card:hover .card-del-btn{opacity:1;transform:scale(1)}.card-img .card-fav{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.3);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;transition:.25s;z-index:2;backdrop-filter:blur(4px)}.card-img .card-fav:hover{transform:scale(1.15)}.card-img .card-fav.faved{background:rgba(228,61,90,.7)}.card-img.lazy-load{background-image:none!important;background-color:var(--bg)}.card-img.lazy-load .card-grad{display:flex}.card-body{padding:.75rem .85rem .8rem}.card-body h3{font-size:.88rem;font-weight:600;margin-bottom:.3rem;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.card-body .meta{font-size:.75rem;color:var(--muted);margin-bottom:.1rem}.card-body .meta .past-label{color:#d44a4a;font-weight:600}.card-body .meta .fee-tag{display:inline-block;padding:1px 6px;border-radius:4px;background:var(--accent-soft);color:var(--text);font-weight:600;font-size:.7rem}.card-body .date-row{display:flex;align-items:center;gap:.35rem;margin-bottom:.25rem}.card-body .date-badge{display:inline-block;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--accent);color:#fff}.card-body .date-badge.past{background:var(--line);color:var(--muted)}.card-body .date-badge.today-badge{background:var(--primary)}.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--muted)}.empty-state .icon{font-size:2.5rem;margin-bottom:.4rem;opacity:.5}.grad-同人誌即賣會{background:linear-gradient(135deg,#f093fb,#f5576c,#f093fb);background-size:200% 200%}.grad-動漫展{background:linear-gradient(135deg,#4facfe,#00f2fe,#4facfe);background-size:200% 200%}.grad-COSPLAY{background:linear-gradient(135deg,#a18cd1,#fbc2eb,#a18cd1);background-size:200% 200%}.grad-ACG音樂會{background:linear-gradient(135deg,#ff0844,#ffb199,#ff0844);background-size:200% 200%}.grad-座談講座{background:linear-gradient(135deg,#667eea,#764ba2,#667eea);background-size:200% 200%}.grad-市集{background:linear-gradient(135deg,#43e97b,#38f9d7,#43e97b);background-size:200% 200%}.grad-其他{background:linear-gradient(135deg,#a8a8a8,#e0e0e0,#a8a8a8);background-size:200% 200%}.grad-成人展{background:linear-gradient(135deg,#2d1b36,#c9407a,#2d1b36);background-size:200% 200%}.grad-同人創作{background:linear-gradient(135deg,#4a0033,#ff6b9d,#4a0033);background-size:200% 200%}.grad-情趣用品{background:linear-gradient(135deg,#1a0a2e,#e74c9e,#1a0a2e);background-size:200% 200%}.grad-成人市集{background:linear-gradient(135deg,#2c1810,#e8916a,#2c1810);background-size:200% 200%}@keyframes gradShift{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}.card-grad{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;animation:8s infinite gradShift}.card-grad::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.18)}.card-grad::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.08) 0,transparent 60%);pointer-events:none}.card-grad-text{color:#fff;font-size:.72rem;font-weight:700;letter-spacing:2px;text-shadow:0 2px 12px rgba(0,0,0,.35);z-index:1;text-align:center;padding:0 1rem;line-height:1.4}.calendar-wrap{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}.calendar-head{background:var(--primary);color:#fff;padding:.7rem 1rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem}.calendar-head h2{font-size:.9rem;font-weight:600;white-space:nowrap}.calendar-head .nav-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:.8rem;transition:.25s;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}.calendar-head .nav-btn:hover{background:rgba(255,255,255,.3);transform:scale(1.08)}.calendar-head .nav-label{font-size:.6rem;opacity:.6;font-weight:400}.cal-scroll{overflow-x:auto;padding:.6rem .6rem .7rem;display:flex;gap:.45rem;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}.cal-scroll::-webkit-scrollbar{height:6px}.cal-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}.cal-scroll::-webkit-scrollbar-track{background:0 0}.cal-month-col{flex-shrink:0;width:320px;border-radius:var(--radius-md);padding:.75rem .8rem .7rem;background:var(--bg);border:1px solid var(--line);transition:.3s}.cal-month-col.is-current{background:rgba(201,149,60,.08);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}.theme-adult .cal-month-col.is-current{background:rgba(212,74,122,.08);border-color:var(--accent)}.cal-month-title{font-size:.78rem;font-weight:700;text-align:center;margin-bottom:.4rem;color:var(--text);letter-spacing:.5px}.cal-month-title .event-count{font-weight:400;color:var(--muted);font-size:.65rem}.cal-month-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.56rem;font-weight:600;color:#bbb;margin-bottom:.25rem}.cal-month-weekdays span:first-child,.cal-month-weekdays span:last-child{color:#d44a4a}.cal-month-days{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}.cal-month-days .day-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.62rem;color:var(--text);position:relative;transition:background .2s}.cal-month-days .day-cell.other-month{color:var(--line)}.cal-month-days .day-cell.has-event::after{content:'';position:absolute;bottom:2px;width:5px;height:5px;border-radius:50%;background:var(--accent)}.cal-month-days .day-cell.today{font-weight:700;color:var(--accent);background:rgba(201,149,60,.1);border-radius:50%}.theme-adult .cal-month-days .day-cell.today{background:rgba(212,74,122,.12)}.cal-month-bar{display:flex;gap:2px;margin-bottom:.5rem;height:5px}.cal-month-bar .bar-seg{flex:1;border-radius:2px;background:var(--line);transition:background .3s}.cal-month-bar .bar-seg.has-event{background:var(--accent)}.cal-fade-enter{animation:.3s calFadeIn}@keyframes calFadeIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:center;backdrop-filter:blur(4px)}.modal-overlay.show{display:flex}.modal-overlay.show .modal{animation:.3s fadeUp}.modal{background:var(--card);border-radius:20px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);position:relative}.modal-detail{max-width:560px}.modal-edit{max-width:500px;padding:2rem}.modal-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.06);border:none;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:.25s;z-index:2;color:var(--text)}.modal-close:hover{background:rgba(0,0,0,.12);transform:rotate(90deg)}.detail-img{width:100%;height:210px;background-size:cover;background-position:center;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:rgba(255,255,255,.6);font-weight:700;position:relative}.detail-body{padding:1.25rem 1.5rem 1.5rem}.detail-body h2{font-size:1.25rem;font-weight:700;margin-bottom:.6rem;line-height:1.4}.detail-meta{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem}.detail-meta .dm-item{font-size:.82rem;color:var(--muted);padding:.3rem 0}.detail-meta .dm-item strong{color:var(--text);display:inline-block;min-width:3.5em;font-weight:600}.detail-desc{font-size:.88rem;color:var(--text);line-height:1.7;margin-bottom:1rem;opacity:.85}.detail-notes{background:var(--bg);border-radius:12px;padding:.8rem 1rem;margin-bottom:1rem;border-left:3px solid var(--accent)}.detail-notes h3{font-size:.85rem;font-weight:700;margin-bottom:.4rem;color:var(--accent)}.detail-notes p{font-size:.82rem;color:var(--text);line-height:1.7;opacity:.8}.detail-link a{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.2rem;background:var(--primary);color:#fff;text-decoration:none;border-radius:10px;font-size:.82rem;font-weight:600;transition:.25s}.detail-link a:hover{background:var(--primary-light);transform:translateY(-2px);box-shadow:0 4px 14px var(--glow)}.detail-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem}.detail-actions button{flex:1;min-width:100px;padding:.5rem .6rem;border:2px solid var(--line);border-radius:10px;background:0 0;color:var(--text);cursor:pointer;font-size:.78rem;font-weight:500;transition:.25s;font-family:var(--font)}.detail-actions button:hover{border-color:var(--accent);color:var(--accent);background:rgba(201,149,60,.05)}.detail-actions button:active{transform:scale(.97)}.theme-adult .detail-actions button:hover{border-color:var(--accent);color:var(--accent);background:rgba(212,74,122,.05)}#editModal h2{margin-bottom:1.2rem;font-size:1.15rem}#editModal label{display:block;font-size:.78rem;font-weight:600;margin:.65rem 0 .25rem;color:var(--muted);letter-spacing:.5px}#editModal input,#editModal select,#editModal textarea{width:100%;padding:.55rem .8rem;border:2px solid var(--line);border-radius:10px;font-size:.85rem;background:var(--bg);outline:0;transition:border-color .25s;font-family:var(--font);color:var(--text)}#editModal input:focus,#editModal select:focus,#editModal textarea:focus{border-color:var(--accent)}#editModal textarea{resize:vertical;min-height:55px}.form-row{display:flex;gap:.6rem}.form-row>*{flex:1}.form-actions{display:flex;gap:.6rem;margin-top:1.2rem}.form-actions button{flex:1;padding:.55rem;border-radius:10px;border:none;cursor:pointer;font-weight:600;transition:.25s;font-family:var(--font)}.btn-secondary{background:var(--bg);color:var(--text)}.btn-secondary:hover{background:var(--line)}.toast-container{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9998;display:flex;flex-direction:column;gap:.5rem;align-items:center;pointer-events:none}.toast{background:#2d2a24;color:#fff;border-radius:12px;padding:.7rem 1rem .7rem 1.2rem;font-size:.82rem;display:flex;align-items:center;gap:.8rem;box-shadow:0 4px 20px rgba(0,0,0,.25);pointer-events:auto;animation:.35s toastIn;max-width:90vw}.toast.toast-out{animation:.3s forwards toastOut}.toast button{padding:.35rem .8rem;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-weight:600;font-size:.78rem;transition:background .25s;font-family:var(--font);white-space:nowrap}.toast button:hover{opacity:.85}@keyframes toastIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes toastOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(20px) scale(.95)}}footer{text-align:center;padding:1.5rem 1rem;color:var(--muted);font-size:.8rem;border-top:1px solid var(--line);margin-top:1rem;letter-spacing:.5px}footer .admin-ft{display:none;margin-top:.6rem;gap:.5rem;justify-content:center}.is-admin footer .admin-ft{display:flex}footer .admin-ft button{padding:.35rem .8rem;border:1px solid var(--line);border-radius:8px;background:0 0;color:var(--muted);cursor:pointer;font-size:.75rem;font-family:var(--font);transition:.25s}footer .admin-ft button:hover{border-color:var(--accent);color:var(--accent)}@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@media (max-width:1400px){.layout-right{width:500px}.cal-month-col{width:280px}}@media (max-width:1100px){.layout{flex-direction:column}.layout-right{width:100%;position:static}.event-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}.cal-month-col{width:280px}}@media (max-width:640px){header h1{font-size:1.4rem;letter-spacing:2px}header{padding:2rem 1rem 1.5rem}.tab-bar{padding:.6rem .8rem 0}.tab-btn{font-size:.82rem;padding:.6rem}.controls{flex-wrap:wrap}.controls input,.controls select{min-width:0;flex:1 1 45%}.controls .btn,.controls .fav-btn{flex:1 1 auto}.tag-chip{font-size:.72rem;padding:.25rem .55rem}.tag-chip.tag-main{font-size:.76rem;padding:.3rem .65rem}.event-grid{grid-template-columns:1fr}.card-img{height:180px}.detail-meta{grid-template-columns:1fr}.detail-actions{flex-direction:column}.cal-month-col{width:240px}.header-actions{position:static;margin-top:.6rem;justify-content:center}.layout{padding:0 .8rem .8rem}.toast{font-size:.78rem;padding:.6rem .8rem;flex-wrap:wrap;justify-content:center}.social-link{display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1rem;color:#fff;text-decoration:none;border-radius:10px;font-size:.8rem;font-weight:600;transition:opacity .25s,transform .15s}.social-link:hover{opacity:.85;transform:translateY(-1px)}.social-link:active{transform:translateY(0)}.social-link.fb{background:#1877f2}.social-link.google{background:var(--primary)}.social-link.ig{background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af)}.social-link.x{background:#000}}@media print{header{background:#1a2744!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}header::after{display:none}.controls,.detail-actions,.header-actions,.layout-right,.tab-bar,.tag-filters,.toast-container{display:none!important}.layout{display:block}.layout-left{width:100%}.event-card{break-inside:avoid;opacity:1!important;transform:none!important;box-shadow:none!important;border:1px solid #ccc}.section{box-shadow:none;border:1px solid #ddd}.modal-overlay{position:static;background:0 0;backdrop-filter:none}.modal{box-shadow:none;border:1px solid #ddd;max-height:none;overflow:visible}footer{border-top:1px solid #ccc}.card-img.lazy-load::after{display:none}.event-grid{grid-template-columns:repeat(2,1fr)}}</style>
 </head>
 <body class="theme-acg">
 
@@ -442,54 +171,48 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script>
-/* ═══════════════════════════════════════════════════════════════
-   Security
-   ═══════════════════════════════════════════════════════════════ */
-const AUTH_KEY = 'tw_acg_admin_hash';
+<script>const AUTH_KEY = 'tw_acg_admin_hash';
 let isAdmin = false;
-
 async function hashPw(password, salt) {
-  const str = password + salt;
-  try {
-    const enc = new TextEncoder();
-    const raw = await crypto.subtle.digest('SHA-256', enc.encode(str));
-    return Array.from(new Uint8Array(raw)).map(b => b.toString(16).padStart(2,'0')).join('');
-  } catch (_) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
-    return Math.abs(h).toString(16);
-  }
+const str = password + salt;
+try {
+const enc = new TextEncoder();
+const raw = await crypto.subtle.digest('SHA-256', enc.encode(str));
+return Array.from(new Uint8Array(raw)).map(b => b.toString(16).padStart(2,'0')).join('');
+} catch (_) {
+let h = 0;
+for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+return Math.abs(h).toString(16);
+}
 }
 function genSalt() {
-  const a = new Uint8Array(16);
-  (crypto.getRandomValues || function(a){for(let i=0;i<a.length;i++)a[i]=Math.random()*256|0})(a);
-  return Array.from(a).map(b => b.toString(16).padStart(2,'0')).join('');
+const a = new Uint8Array(16);
+(crypto.getRandomValues || function(a){for(let i=0;i<a.length;i++)a[i]=Math.random()*256|0})(a);
+return Array.from(a).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 function checkSession() { return sessionStorage.getItem('tw_acg_admin') === '1'; }
 async function doAuth(password) {
-  const stored = localStorage.getItem(AUTH_KEY);
-  if (!stored) {
-    const salt = genSalt();
-    const hash = await hashPw(password, salt);
-    safeSetItem(AUTH_KEY, JSON.stringify({ hash, salt }));
-    sessionStorage.setItem('tw_acg_admin', '1');
-    return true;
-  }
-  const { hash: sh, salt: ss } = JSON.parse(stored);
-  return (await hashPw(password, ss)) === sh;
+const stored = localStorage.getItem(AUTH_KEY);
+if (!stored) {
+const salt = genSalt();
+const hash = await hashPw(password, salt);
+safeSetItem(AUTH_KEY, JSON.stringify({ hash, salt }));
+sessionStorage.setItem('tw_acg_admin', '1');
+return true;
+}
+const { hash: sh, salt: ss } = JSON.parse(stored);
+return (await hashPw(password, ss)) === sh;
 }
 function showAdminUI(v) {
-  isAdmin = v;
-  document.getElementById('addBtn').disabled = !v;
-  document.getElementById('app').classList.remove('blurred');
-  document.getElementById('logoutBtn').style.display = v ? 'inline-block' : 'none';
-  document.getElementById('adminBtn').textContent = v ? '🛡️ 管理' : '🔑 管理登入';
-  document.getElementById('adminBtn').classList.toggle('active', v);
-  document.body.classList.toggle('is-admin', v);
-  renderView();
+isAdmin = v;
+document.getElementById('addBtn').disabled = !v;
+document.getElementById('app').classList.remove('blurred');
+document.getElementById('logoutBtn').style.display = v ? 'inline-block' : 'none';
+document.getElementById('adminBtn').textContent = v ? '🛡️ 管理' : '🔑 管理登入';
+document.getElementById('adminBtn').classList.toggle('active', v);
+document.body.classList.toggle('is-admin', v);
+renderView();
 }
-
 const authOverlay = document.getElementById('authOverlay');
 const authPw = document.getElementById('authPassword');
 const authError = document.getElementById('authError');
@@ -497,118 +220,97 @@ const authTitle = document.getElementById('authTitle');
 const authDesc = document.getElementById('authDesc');
 const authSubmit = document.getElementById('authSubmit');
 const authSkip = document.getElementById('authSkip');
-
 function showAuth(mode) {
-  authOverlay.classList.add('show');
-  authTitle.textContent = mode === 'set' ? '🔐 設定管理者密碼' : '🔐 管理者驗證';
-  authDesc.textContent = mode === 'set' ? '首次使用，請設定一組密碼以保護管理功能' : '請輸入密碼以管理活動';
-  authSubmit.textContent = mode === 'set' ? '設定' : '驗證';
-  authPw.value = '';
-  authError.style.display = 'none';
+authOverlay.classList.add('show');
+authTitle.textContent = mode === 'set' ? '🔐 設定管理者密碼' : '🔐 管理者驗證';
+authDesc.textContent = mode === 'set' ? '首次使用，請設定一組密碼以保護管理功能' : '請輸入密碼以管理活動';
+authSubmit.textContent = mode === 'set' ? '設定' : '驗證';
+authPw.value = '';
+authError.style.display = 'none';
 }
-
 authSubmit.addEventListener('click', async () => {
-  const pw = authPw.value.trim();
-  if (!pw) { authError.textContent = '請輸入密碼'; authError.style.display = 'block'; return; }
-  const stored = localStorage.getItem(AUTH_KEY);
-  if (!stored && pw.length < 4) { authError.textContent = '密碼至少 4 個字元'; authError.style.display = 'block'; return; }
-  if (await doAuth(pw)) {
-    authOverlay.classList.remove('show');
-    showAdminUI(true);
-  } else {
-    authError.textContent = '密碼錯誤，請重試';
-    authError.style.display = 'block';
-    setTimeout(() => authError.style.display = 'none', 3000);
-  }
-  authPw.value = '';
+const pw = authPw.value.trim();
+if (!pw) { authError.textContent = '請輸入密碼'; authError.style.display = 'block'; return; }
+const stored = localStorage.getItem(AUTH_KEY);
+if (!stored && pw.length < 4) { authError.textContent = '密碼至少 4 個字元'; authError.style.display = 'block'; return; }
+if (await doAuth(pw)) {
+authOverlay.classList.remove('show');
+showAdminUI(true);
+} else {
+authError.textContent = '密碼錯誤，請重試';
+authError.style.display = 'block';
+setTimeout(() => authError.style.display = 'none', 3000);
+}
+authPw.value = '';
 });
 authPw.addEventListener('keydown', e => { if (e.key === 'Enter') authSubmit.click(); });
 authSkip.addEventListener('click', () => {
-  authOverlay.classList.remove('show');
-  document.getElementById('app').classList.remove('blurred');
-  showAdminUI(false);
+authOverlay.classList.remove('show');
+document.getElementById('app').classList.remove('blurred');
+showAdminUI(false);
 });
-
 function initSecurity() {
-  if (checkSession()) {
-    authOverlay.classList.remove('show');
-    document.getElementById('app').classList.remove('blurred');
-    showAdminUI(true);
-    return;
-  }
-  authOverlay.classList.remove('show');
-  document.getElementById('app').classList.remove('blurred');
-  showAdminUI(false);
+if (checkSession()) {
+authOverlay.classList.remove('show');
+document.getElementById('app').classList.remove('blurred');
+showAdminUI(true);
+return;
+}
+authOverlay.classList.remove('show');
+document.getElementById('app').classList.remove('blurred');
+showAdminUI(false);
 }
 document.getElementById('adminBtn').addEventListener('click', () => {
-  if (!isAdmin) showAuth(localStorage.getItem(AUTH_KEY) ? 'login' : 'set');
+if (!isAdmin) showAuth(localStorage.getItem(AUTH_KEY) ? 'login' : 'set');
 });
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('tw_acg_admin');
-  isAdmin = false; showAdminUI(false);
-  showToast('已登出管理模式');
+sessionStorage.removeItem('tw_acg_admin');
+isAdmin = false; showAdminUI(false);
+showToast('已登出管理模式');
 });
-
-/* ═══════════════════════════════════════════════════════════════
-   Tab System
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════════
-   Tab System
-   ═══════════════════════════════════════════════════════════════ */
 const TABS = {
-  acg: {
-    key: 'tw_acg_events',
-    theme: 'theme-acg',
-    label: 'ACG',
-    typeOptions: ['同人誌即賣會','動漫展','COSPLAY','ACG音樂會','座談講座','市集','其他'],
-  },
-  adult: {
-    key: 'tw_adult_events',
-    theme: 'theme-adult',
-    label: '成人展',
-    typeOptions: ['成人展','同人創作','情趣用品','成人市集','其他'],
-  }
-};
-</script>
-<script src="events.js"></script>
-<script>
-
-/* ═══════════════════════════════════════════════════════════════
-   Full Category Hierarchy
-   ═══════════════════════════════════════════════════════════════ */
-const FULL_CATEGORIES = {
-  '大型展覽': { icon: '🏛️', sub: ['綜合動漫展','漫畫博覽會','電玩遊戲展','電影玩具展','插畫博覽會','原創作品展','模型公仔展','懷舊電玩展','痛車痛物展','寫真展','ACG主題燈會','動畫影展','國際書展動漫館','文具文創展'] },
-  '同人創作': { icon: '📖', sub: ['綜合同人誌即賣會','亞洲動漫創作展','原創同人展','BL專門同人展','GL專門同人展','男性向同人展','女性向同人展','單一作品ONLY場','同人音樂市集','同人遊戲展','同人小說展','同人周邊市集','線上同人市集'] },
-  '音樂/表演': { icon: '🎤', sub: ['ACG演唱會','ACG交響音樂會','ACG樂團LIVE','動漫DJ派對','聲優見面會','聲優演唱會','Vtuber線下演唱會','Vtuber見面會','女僕歌舞秀','偶像地下LIVE','Cosplay舞蹈比賽','ACG卡拉OK大賽','懷舊動畫播映會','動漫電影首映會'] },
-  'Cosplay': { icon: '🎭', sub: ['Cosplay比賽','國際選拔賽','Cosplay走秀','Cosplay攝影會','Cosplay遊行','Cosplay外拍團','Cosplay舞台劇','服裝工作坊','妝容教學','道具工作坊','Cosplay二手市集','角色生日聚會'] },
-  '講座/教學': { icon: '🗣️', sub: ['產業論壇','創作分享會','漫畫教學工作坊','插畫教學','模型製作教學','配音體驗營','日文講座','編劇故事創作課','影片剪輯教學','Cos攝影教學','同人新手講座','學術研討會'] },
-  '市集/消費': { icon: '🛍️', sub: ['文創市集','X面具市集','二手ACG市集','主題快閃店','一番賞販售會','動漫福袋會','日本直輸入市集','聯名超商活動','主題咖啡廳快閃','扭蛋盒玩市集','集換式卡牌市集','同人周邊訂購會'] },
-  '遊戲/互動': { icon: '🎮', sub: ['獨立遊戲展','桌遊展','TCG大賽','電競比賽','手機遊戲線下會','實境解謎逃脫','TRPG推廣會','ACG主題運動會','遊戲機台大會','懷舊遊戲交流會','遊戲二手交換會','遊戲原畫展'] },
-  '社群/聚會': { icon: '👥', sub: ['站聚','ACG讀書會','宅宅交友派對','創作者交流會','繪圖聚會','痛車聚會','模型交流會','Cosplay聚會','Vtuber粉絲聚','ACG主題露營','日本聖地巡禮團','同人婚活'] },
-  '成人': { icon: '🔞', sub: ['成人博覽會','成人展','R18同人誌即賣會','成人創作市集','女性向成人創作展','成人藝術創作展','成人用品保健展','AV影視展','成人產業論壇','寫真集簽名會','男優女優見面會','成人VR體驗會','繩縛藝術展','成人主題派對','成人遊戲展','成人電影放映會','成人雜誌展','成人玩具體驗展','成人寫真展','成人漫畫展','成人角色扮演展','成人同人創作交流會','R18攝影會','人體彩繪藝術展','裸體繪畫工作坊','R18寫真集展','AV女優見面會','男優見面會','寫真女星見面會','成人主播見面會','性感內衣走秀','情趣內衣秀','成人泳裝派對','成人角色扮演派對','成人音樂派對','R18主題派對','BDSM體驗展','成人桌遊體驗','成人直播互動展','戀愛模擬體驗','成人教學工作坊','情趣內衣展','成人保健品展','成人周邊商品展','情趣用品市集','兩性教育講座','成人健康講座','成人交友聯誼展','戀愛配對活動','兩性交流講座','R18線下交流會','R18線下聚會','成人戀愛體驗展','成人繪畫展','男體寫真展','R18線下聯誼','成人主題餐廳體驗'] }
+acg: {
+key: 'tw_acg_events',
+theme: 'theme-acg',
+label: 'ACG',
+typeOptions: ['同人誌即賣會','動漫展','COSPLAY','ACG音樂會','座談講座','市集','其他'],
+},
+adult: {
+key: 'tw_adult_events',
+theme: 'theme-adult',
+label: '成人展',
+typeOptions: ['成人展','同人創作','情趣用品','成人市集','其他'],
+}
+};</script>
+<script src="events.min.js"></script>
+<script>const FULL_CATEGORIES = {
+'大型展覽': { icon: '🏛️', sub: ['綜合動漫展','漫畫博覽會','電玩遊戲展','電影玩具展','插畫博覽會','原創作品展','模型公仔展','懷舊電玩展','痛車痛物展','寫真展','ACG主題燈會','動畫影展','國際書展動漫館','文具文創展'] },
+'同人創作': { icon: '📖', sub: ['綜合同人誌即賣會','亞洲動漫創作展','原創同人展','BL專門同人展','GL專門同人展','男性向同人展','女性向同人展','單一作品ONLY場','同人音樂市集','同人遊戲展','同人小說展','同人周邊市集','線上同人市集'] },
+'音樂/表演': { icon: '🎤', sub: ['ACG演唱會','ACG交響音樂會','ACG樂團LIVE','動漫DJ派對','聲優見面會','聲優演唱會','Vtuber線下演唱會','Vtuber見面會','女僕歌舞秀','偶像地下LIVE','Cosplay舞蹈比賽','ACG卡拉OK大賽','懷舊動畫播映會','動漫電影首映會'] },
+'Cosplay': { icon: '🎭', sub: ['Cosplay比賽','國際選拔賽','Cosplay走秀','Cosplay攝影會','Cosplay遊行','Cosplay外拍團','Cosplay舞台劇','服裝工作坊','妝容教學','道具工作坊','Cosplay二手市集','角色生日聚會'] },
+'講座/教學': { icon: '🗣️', sub: ['產業論壇','創作分享會','漫畫教學工作坊','插畫教學','模型製作教學','配音體驗營','日文講座','編劇故事創作課','影片剪輯教學','Cos攝影教學','同人新手講座','學術研討會'] },
+'市集/消費': { icon: '🛍️', sub: ['文創市集','X面具市集','二手ACG市集','主題快閃店','一番賞販售會','動漫福袋會','日本直輸入市集','聯名超商活動','主題咖啡廳快閃','扭蛋盒玩市集','集換式卡牌市集','同人周邊訂購會'] },
+'遊戲/互動': { icon: '🎮', sub: ['獨立遊戲展','桌遊展','TCG大賽','電競比賽','手機遊戲線下會','實境解謎逃脫','TRPG推廣會','ACG主題運動會','遊戲機台大會','懷舊遊戲交流會','遊戲二手交換會','遊戲原畫展'] },
+'社群/聚會': { icon: '👥', sub: ['站聚','ACG讀書會','宅宅交友派對','創作者交流會','繪圖聚會','痛車聚會','模型交流會','Cosplay聚會','Vtuber粉絲聚','ACG主題露營','日本聖地巡禮團','同人婚活'] },
+'成人': { icon: '🔞', sub: ['成人博覽會','成人展','R18同人誌即賣會','成人創作市集','女性向成人創作展','成人藝術創作展','成人用品保健展','AV影視展','成人產業論壇','寫真集簽名會','男優女優見面會','成人VR體驗會','繩縛藝術展','成人主題派對','成人遊戲展','成人電影放映會','成人雜誌展','成人玩具體驗展','成人寫真展','成人漫畫展','成人角色扮演展','成人同人創作交流會','R18攝影會','人體彩繪藝術展','裸體繪畫工作坊','R18寫真集展','AV女優見面會','男優見面會','寫真女星見面會','成人主播見面會','性感內衣走秀','情趣內衣秀','成人泳裝派對','成人角色扮演派對','成人音樂派對','R18主題派對','BDSM體驗展','成人桌遊體驗','成人直播互動展','戀愛模擬體驗','成人教學工作坊','情趣內衣展','成人保健品展','成人周邊商品展','情趣用品市集','兩性教育講座','成人健康講座','成人交友聯誼展','戀愛配對活動','兩性交流講座','R18線下交流會','R18線下聚會','成人戀愛體驗展','成人繪畫展','男體寫真展','R18線下聯誼','成人主題餐廳體驗'] }
 };
 let CATEGORIES = {};
 let CATEGORY_MAIN = [];
 let CATEGORY_ALL = [];
 function rebuildCategories() {
-  const tagsInUse = new Set();
-  events.forEach(e => (e.tags||[]).forEach(t => tagsInUse.add(t)));
-  const cat = {};
-  Object.keys(FULL_CATEGORIES).forEach(m => {
-    const subs = FULL_CATEGORIES[m].sub.filter(s => tagsInUse.has(s));
-    if (tagsInUse.has(m) || subs.length > 0) {
-      cat[m] = { icon: FULL_CATEGORIES[m].icon, sub: subs };
-    }
-  });
-  CATEGORIES = cat;
-  CATEGORY_MAIN = Object.keys(cat);
-  CATEGORY_ALL = CATEGORY_MAIN.reduce((a,m) => a.concat(cat[m].sub), []);
+const tagsInUse = new Set();
+events.forEach(e => (e.tags||[]).forEach(t => tagsInUse.add(t)));
+const cat = {};
+Object.keys(FULL_CATEGORIES).forEach(m => {
+const subs = FULL_CATEGORIES[m].sub.filter(s => tagsInUse.has(s));
+if (tagsInUse.has(m) || subs.length > 0) {
+cat[m] = { icon: FULL_CATEGORIES[m].icon, sub: subs };
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   State
-   ═══════════════════════════════════════════════════════════════ */
+});
+CATEGORIES = cat;
+CATEGORY_MAIN = Object.keys(cat);
+CATEGORY_ALL = CATEGORY_MAIN.reduce((a,m) => a.concat(cat[m].sub), []);
+}
 let activeTab = 'acg';
 let events = [];
 let editingId = null;
@@ -616,650 +318,567 @@ let showingFavorites = false;
 let trashBin = [];
 let selectedTags = new Set();
 let selectedMainTag = null;
-
 function getTabConfig() { return TABS[activeTab]; }
 function trashKey() { return activeTab + '_trash'; }
-
 function safeJSON(key, fallback) {
-  try { const s = localStorage.getItem(key); if (s) { const d = JSON.parse(s); return d; } } catch (e) { console.warn('Corrupted localStorage key:', key, e); showToast('⚠️ 部分資料已損毀，已自動重置'); }
-  return fallback;
+try { const s = localStorage.getItem(key); if (s) { const d = JSON.parse(s); return d; } } catch (e) { console.warn('Corrupted localStorage key:', key, e); showToast('⚠️ 部分資料已損毀，已自動重置'); }
+return fallback;
 }
 function safeSetItem(key, value) {
-  try { localStorage.setItem(key, value); return true; } catch (e) {
-    if (e.name === 'QuotaExceededError' || e.code === 22) { showToast('⚠️ 儲存空間已滿，無法儲存資料'); }
-    else { console.warn('localStorage error:', key, e); showToast('⚠️ 儲存時發生錯誤'); }
-    return false;
-  }
+try { localStorage.setItem(key, value); return true; } catch (e) {
+if (e.name === 'QuotaExceededError' || e.code === 22) { showToast('⚠️ 儲存空間已滿，無法儲存資料'); }
+else { console.warn('localStorage error:', key, e); showToast('⚠️ 儲存時發生錯誤'); }
+return false;
 }
-
+}
 function loadEvents() {
-  const cfg = getTabConfig();
-  try { const s = localStorage.getItem(cfg.key); if (s) { events = JSON.parse(s); } else { events = [...EVENTS_DATA[activeTab]]; saveEvents(); } } catch (_) { events = [...EVENTS_DATA[activeTab]]; saveEvents(); }
-  events.forEach(e => { if (!e.tags) e.tags = [e.type || '其他']; });
-  rebuildCategories();
+const cfg = getTabConfig();
+try { const s = localStorage.getItem(cfg.key); if (s) { events = JSON.parse(s); } else { events = [...EVENTS_DATA[activeTab]]; saveEvents(); } } catch (_) { events = [...EVENTS_DATA[activeTab]]; saveEvents(); }
+events.forEach(e => { if (!e.tags) e.tags = [e.type || '其他']; });
+rebuildCategories();
 }
-
 function saveEvents() {
-  const cfg = getTabConfig();
-  safeSetItem(cfg.key, JSON.stringify(events));
-  rebuildCategories();
+const cfg = getTabConfig();
+safeSetItem(cfg.key, JSON.stringify(events));
+rebuildCategories();
 }
-
 function loadTrash() {
-  try { const s = localStorage.getItem(trashKey()); if (s) trashBin = JSON.parse(s); else trashBin = []; } catch (_) { trashBin = []; }
+try { const s = localStorage.getItem(trashKey()); if (s) trashBin = JSON.parse(s); else trashBin = []; } catch (_) { trashBin = []; }
 }
 function saveTrash() {
-  safeSetItem(trashKey(), JSON.stringify(trashBin));
+safeSetItem(trashKey(), JSON.stringify(trashBin));
 }
-
 function switchTab(tab) {
-  if (tab === activeTab) return;
-  saveEvents();
-  activeTab = tab;
-  showingFavorites = false;
-  selectedTags.clear();
-  selectedMainTag = null;
-  document.getElementById('favFilterBtn').classList.remove('active');
-  const cfg = getTabConfig();
-  document.body.className = cfg.theme;
-  document.title = '台灣活動總覽 — 「'+cfg.label+'」';
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  loadEvents();
-  updateFilterOptions();
-  updateBadges();
-  renderView();
+if (tab === activeTab) return;
+saveEvents();
+activeTab = tab;
+showingFavorites = false;
+selectedTags.clear();
+selectedMainTag = null;
+document.getElementById('favFilterBtn').classList.remove('active');
+const cfg = getTabConfig();
+document.body.className = cfg.theme;
+document.title = '台灣活動總覽 — 「'+cfg.label+'」';
+document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+loadEvents();
+updateFilterOptions();
+updateBadges();
+renderView();
 }
-
 function tagCount(tag) {
-  return events.filter(e => (e.tags||[]).includes(tag)).length;
+return events.filter(e => (e.tags||[]).includes(tag)).length;
 }
 function mainTagCount(main) {
-  const subs = CATEGORIES[main].sub;
-  return events.filter(e => (e.tags||[]).some(t => t === main || subs.includes(t))).length;
+const subs = CATEGORIES[main].sub;
+return events.filter(e => (e.tags||[]).some(t => t === main || subs.includes(t))).length;
 }
 function updateFilterOptions() {
-  const mainRow = document.getElementById('tagMainRow');
-  mainRow.innerHTML = '';
-  const allBtn = document.createElement('button');
-  allBtn.className = 'tag-chip tag-all' + (selectedTags.size === 0 && !selectedMainTag ? ' active' : '');
-  allBtn.innerHTML = '🏷️ 全部 <span class="chip-count">'+events.length+'</span>';
-  allBtn.dataset.tag = '__all__';
-  allBtn.addEventListener('click', () => { selectedTags.clear(); selectedMainTag = null; document.getElementById('tagSubRow').innerHTML = ''; renderView(); });
-  mainRow.appendChild(allBtn);
-  CATEGORY_MAIN.forEach(m => {
-    const chip = document.createElement('button');
-    chip.className = 'tag-chip tag-main' + (selectedMainTag === m ? ' active' : '');
-    chip.innerHTML = CATEGORIES[m].icon + ' ' + m + ' <span class="chip-count">'+mainTagCount(m)+'</span>';
-    chip.dataset.tag = m;
-    chip.addEventListener('click', () => {
-      selectedMainTag = selectedMainTag === m ? null : m;
-      selectedTags.clear();
-      buildSubRow();
-      renderView();
-    });
-    mainRow.appendChild(chip);
-  });
-  buildSubRow();
+const mainRow = document.getElementById('tagMainRow');
+mainRow.innerHTML = '';
+const allBtn = document.createElement('button');
+allBtn.className = 'tag-chip tag-all' + (selectedTags.size === 0 && !selectedMainTag ? ' active' : '');
+allBtn.innerHTML = '🏷️ 全部 <span class="chip-count">'+events.length+'</span>';
+allBtn.dataset.tag = '__all__';
+allBtn.addEventListener('click', () => { selectedTags.clear(); selectedMainTag = null; document.getElementById('tagSubRow').innerHTML = ''; renderView(); });
+mainRow.appendChild(allBtn);
+CATEGORY_MAIN.forEach(m => {
+const chip = document.createElement('button');
+chip.className = 'tag-chip tag-main' + (selectedMainTag === m ? ' active' : '');
+chip.innerHTML = CATEGORIES[m].icon + ' ' + m + ' <span class="chip-count">'+mainTagCount(m)+'</span>';
+chip.dataset.tag = m;
+chip.addEventListener('click', () => {
+selectedMainTag = selectedMainTag === m ? null : m;
+selectedTags.clear();
+buildSubRow();
+renderView();
+});
+mainRow.appendChild(chip);
+});
+buildSubRow();
 }
 function buildSubRow() {
-  const subRow = document.getElementById('tagSubRow');
-  subRow.innerHTML = '';
-  if (!selectedMainTag) return;
-  const subs = CATEGORIES[selectedMainTag].sub;
-  subs.forEach(s => {
-    const cnt = tagCount(s);
-    const chip = document.createElement('button');
-    chip.className = 'tag-chip tag-sub' + (selectedTags.has(s) ? ' active' : '');
-    chip.innerHTML = s + ' <span class="chip-count">'+cnt+'</span>';
-    chip.dataset.tag = s;
-    chip.addEventListener('click', () => {
-      if (selectedTags.has(s)) selectedTags.delete(s); else selectedTags.add(s);
-      buildSubRow();
-      renderView();
-    });
-    subRow.appendChild(chip);
-  });
-}
-
-function updateBadges() {
-  ['acg','adult'].forEach(t => {
-    const cfg = TABS[t];
-    let c = 0;
-    try { const s = localStorage.getItem(cfg.key); if (s) c = JSON.parse(s).length; else c = EVENTS_DATA[t].length; } catch(_) { c = EVENTS_DATA[t].length; }
-    document.getElementById(t+'Badge').textContent = c;
-  });
-}
-
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+const subRow = document.getElementById('tagSubRow');
+subRow.innerHTML = '';
+if (!selectedMainTag) return;
+const subs = CATEGORIES[selectedMainTag].sub;
+subs.forEach(s => {
+const cnt = tagCount(s);
+const chip = document.createElement('button');
+chip.className = 'tag-chip tag-sub' + (selectedTags.has(s) ? ' active' : '');
+chip.innerHTML = s + ' <span class="chip-count">'+cnt+'</span>';
+chip.dataset.tag = s;
+chip.addEventListener('click', () => {
+if (selectedTags.has(s)) selectedTags.delete(s); else selectedTags.add(s);
+buildSubRow();
+renderView();
 });
-
-/* ═══════════════════════════════════════════════════════════════
-   Favorites
-   ═══════════════════════════════════════════════════════════════ */
+subRow.appendChild(chip);
+});
+}
+function updateBadges() {
+['acg','adult'].forEach(t => {
+const cfg = TABS[t];
+let c = 0;
+try { const s = localStorage.getItem(cfg.key); if (s) c = JSON.parse(s).length; else c = EVENTS_DATA[t].length; } catch(_) { c = EVENTS_DATA[t].length; }
+document.getElementById(t+'Badge').textContent = c;
+});
+}
+document.querySelectorAll('.tab-btn').forEach(btn => {
+btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
 function favKey() { return activeTab + '_favorites'; }
 function getFavorites() {
-  try { const s = localStorage.getItem(favKey()); return s ? JSON.parse(s) : []; } catch(_) { return []; }
+try { const s = localStorage.getItem(favKey()); return s ? JSON.parse(s) : []; } catch(_) { return []; }
 }
 function setFavorites(arr) { safeSetItem(favKey(), JSON.stringify(arr)); }
 function isFaved(id) { return getFavorites().includes(id); }
 function toggleFav(id, skipRender) {
-  let favs = getFavorites();
-  if (favs.includes(id)) favs = favs.filter(f => f !== id);
-  else favs.push(id);
-  setFavorites(favs);
-  if (!skipRender) renderView();
-  else {
-    const favBtn = document.getElementById('detailFav');
-    if (favBtn) favBtn.textContent = isFaved(id) ? '💕 已收藏' : '❤️ 收藏';
-    document.querySelectorAll('.card-fav[data-id="'+id+'"]').forEach(el => {
-      el.classList.toggle('faved', isFaved(id));
-      el.textContent = isFaved(id) ? '💕' : '🤍';
-    });
-  }
-}
-
-document.getElementById('favFilterBtn').addEventListener('click', () => {
-  showingFavorites = !showingFavorites;
-  document.getElementById('favFilterBtn').classList.toggle('active', showingFavorites);
-  renderView();
+let favs = getFavorites();
+if (favs.includes(id)) favs = favs.filter(f => f !== id);
+else favs.push(id);
+setFavorites(favs);
+if (!skipRender) renderView();
+else {
+const favBtn = document.getElementById('detailFav');
+if (favBtn) favBtn.textContent = isFaved(id) ? '💕 已收藏' : '❤️ 收藏';
+document.querySelectorAll('.card-fav[data-id="'+id+'"]').forEach(el => {
+el.classList.toggle('faved', isFaved(id));
+el.textContent = isFaved(id) ? '💕' : '🤍';
 });
-
-/* ═══════════════════════════════════════════════════════════════
-   Helpers
-   ═══════════════════════════════════════════════════════════════ */
+}
+}
+document.getElementById('favFilterBtn').addEventListener('click', () => {
+showingFavorites = !showingFavorites;
+document.getElementById('favFilterBtn').classList.toggle('active', showingFavorites);
+renderView();
+});
 function sanitize(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 function formatDate(ds) { const d = new Date(ds+'T00:00:00'); const w=['日','一','二','三','四','五','六']; return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} (${w[d.getDay()]})`; }
 function isPast(ds) { const t=new Date(); t.setHours(0,0,0,0); return new Date(ds+'T00:00:00') < t; }
 function isToday(ds) { const t=new Date(); t.setHours(0,0,0,0); return new Date(ds+'T00:00:00').getTime() === t.getTime(); }
 function formatTimeAgo(ts) { const s=Math.floor((Date.now()-ts)/1000); if(s<60)return '剛剛'; if(s<3600)return Math.floor(s/60)+' 分鐘前'; if(s<86400)return Math.floor(s/3600)+' 小時前'; return Math.floor(s/86400)+' 天前'; }
-
 function matchesTags(e) {
-  if (selectedMainTag === null && selectedTags.size === 0) return true;
-  const eTags = e.tags || [e.type || ''];
-  if (selectedTags.size > 0) return eTags.some(t => selectedTags.has(t));
-  if (selectedMainTag) {
-    const subs = CATEGORIES[selectedMainTag].sub;
-    return eTags.some(t => t === selectedMainTag || subs.includes(t));
-  }
-  return true;
+if (selectedMainTag === null && selectedTags.size === 0) return true;
+const eTags = e.tags || [e.type || ''];
+if (selectedTags.size > 0) return eTags.some(t => selectedTags.has(t));
+if (selectedMainTag) {
+const subs = CATEGORIES[selectedMainTag].sub;
+return eTags.some(t => t === selectedMainTag || subs.includes(t));
+}
+return true;
 }
 function getFiltered() {
-  let f = [...events];
-  f = f.filter(matchesTags);
-  const sq = document.getElementById('searchInput').value.trim().toLowerCase();
-  if (sq) f = f.filter(e => e.name.toLowerCase().includes(sq) || (e.location||'').toLowerCase().includes(sq));
-  if (showingFavorites) { const favs = getFavorites(); f = f.filter(e => favs.includes(e.id)); }
-  const sort = document.getElementById('sortBy').value;
-  f.sort((a,b) => {
-    if (sort === 'name') return a.name.localeCompare(b.name, 'zh');
-    if (sort === 'location') return (a.location||'').localeCompare(b.location||'', 'zh');
-    return a.date.localeCompare(b.date);
-  });
-  return f;
+let f = [...events];
+f = f.filter(matchesTags);
+const sq = document.getElementById('searchInput').value.trim().toLowerCase();
+if (sq) f = f.filter(e => e.name.toLowerCase().includes(sq) || (e.location||'').toLowerCase().includes(sq));
+if (showingFavorites) { const favs = getFavorites(); f = f.filter(e => favs.includes(e.id)); }
+const sort = document.getElementById('sortBy').value;
+f.sort((a,b) => {
+if (sort === 'name') return a.name.localeCompare(b.name, 'zh');
+if (sort === 'location') return (a.location||'').localeCompare(b.location||'', 'zh');
+return a.date.localeCompare(b.date);
+});
+return f;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Render
-   ═══════════════════════════════════════════════════════════════ */
 let renderCache = {};
 let renderCacheKey = '';
 function renderView() {
-  const newKey = activeTab + '_' + [...selectedTags].sort().join(',') + '_' + selectedMainTag + '_' + document.getElementById('sortBy').value + '_' + document.getElementById('searchInput').value + '_' + showingFavorites;
-  if (newKey === renderCacheKey && !document.querySelector('.event-card:not(.visible)')) { renderCalendar(); return; }
-  renderCacheKey = newKey;
-  renderList(); renderCalendar(); observeCards(); updateAutocomplete();
+const newKey = activeTab + '_' + [...selectedTags].sort().join(',') + '_' + selectedMainTag + '_' + document.getElementById('sortBy').value + '_' + document.getElementById('searchInput').value + '_' + showingFavorites;
+if (newKey === renderCacheKey && !document.querySelector('.event-card:not(.visible)')) { renderCalendar(); return; }
+renderCacheKey = newKey;
+renderList(); renderCalendar(); observeCards(); updateAutocomplete();
 }
-
 function renderList() {
-  const filtered = getFiltered();
-  const todayItems = filtered.filter(e => isToday(e.date));
-  const upcoming = filtered.filter(e => !isPast(e.date) && !isToday(e.date));
-  const past = filtered.filter(e => isPast(e.date));
-
-  const todaySec = document.getElementById('todaySection');
-  if (todayItems.length) {
-    todaySec.style.display = 'block';
-    document.getElementById('todayCount').textContent = `（${todayItems.length} 個）`;
-    renderGrid('todayGrid', todayItems);
-  } else {
-    todaySec.style.display = 'none';
-  }
-
-  document.getElementById('upcomingCount').textContent = `（${upcoming.length} 個）`;
-  document.getElementById('pastCount').textContent = `（${past.length} 個）`;
-  renderGrid('upcomingGrid', upcoming);
-  renderGrid('pastGrid', past);
+const filtered = getFiltered();
+const todayItems = filtered.filter(e => isToday(e.date));
+const upcoming = filtered.filter(e => !isPast(e.date) && !isToday(e.date));
+const past = filtered.filter(e => isPast(e.date));
+const todaySec = document.getElementById('todaySection');
+if (todayItems.length) {
+todaySec.style.display = 'block';
+document.getElementById('todayCount').textContent = `（${todayItems.length} 個）`;
+renderGrid('todayGrid', todayItems);
+} else {
+todaySec.style.display = 'none';
 }
-
+document.getElementById('upcomingCount').textContent = `（${upcoming.length} 個）`;
+document.getElementById('pastCount').textContent = `（${past.length} 個）`;
+renderGrid('upcomingGrid', upcoming);
+renderGrid('pastGrid', past);
+}
 function renderGrid(gridId, items) {
-  const grid = document.getElementById(gridId);
-  if (!items.length) {
-    grid.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>目前沒有符合條件的活動</p></div>';
-    return;
-  }
-  grid.innerHTML = items.map((e, i) => {
-    const imgStyle = e.image ? `background-image:url(${JSON.stringify(e.image)})` : '';
-    const gradContent = !e.image ? `<div class="card-grad grad-${sanitize(e.type)}"><div class="card-grad-text">${sanitize(e.name)}</div></div>` : '';
-    const badgeClass = isPast(e.date) ? 'past' : (isToday(e.date) ? 'today-badge' : '');
-    const faved = isFaved(e.id);
-    return `<div class="event-card" data-id="${sanitize(e.id)}" style="transition-delay:${(i%12)*50}ms">
-      <div class="card-img ${e.image ? 'lazy-load' : ''}" data-src="${sanitize(e.image)}" style="${imgStyle}">${gradContent}
-        <span class="badge">${sanitize(e.type)}</span>
-        <button class="card-fav ${faved?'faved':''}" data-id="${sanitize(e.id)}" title="${faved?'取消收藏':'加入收藏'}">${faved?'💕':'🤍'}</button>
-        <button class="card-del-btn" data-id="${sanitize(e.id)}" title="刪除活動">✕</button>
-      </div>
-      <div class="card-body">
-        <div class="date-row"><span class="date-badge ${badgeClass}">${isToday(e.date) ? '⭐ 今天' : sanitize(formatDate(e.date))}</span></div>
-        <h3>${sanitize(e.name)}</h3>
-        ${e.time ? '<div class="meta">🕐 '+sanitize(e.time)+'</div>' : ''}
-        ${e.location ? '<div class="meta">📍 '+sanitize(e.location)+'</div>' : ''}
-        <div class="meta">${e.fee ? '<span class="fee-tag">💵 '+sanitize(e.fee)+'</span>' : ''}${isPast(e.date) ? ' <span class="past-label">已結束</span>' : ''}</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  grid.querySelectorAll('.event-card').forEach(el => {
-    const ev = events.find(x => x.id === el.dataset.id);
-    if (!ev) return;
-    el.addEventListener('click', e => { if (!e.target.closest('.card-del-btn') && !e.target.closest('.card-fav')) openDetail(ev); });
-  });
-  grid.querySelectorAll('.card-fav').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); toggleFav(btn.dataset.id); });
-  });
-  grid.querySelectorAll('.card-del-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      if (!isAdmin) return;
-      const ev = events.find(x => x.id === btn.dataset.id);
-      if (!ev) return;
-      if (!confirm(`確定刪除「${ev.name}」？此操作可從垃圾桶復原。`)) return;
-      events = events.filter(x => x.id !== btn.dataset.id);
-      loadTrash();
-      trashBin.push({ event: ev, time: Date.now() });
-      saveTrash(); saveEvents();
-      showToast(`已刪除「${ev.name}」`, '復原', () => {
-        loadTrash();
-        const idx = trashBin.findIndex(t => t.event.id === ev.id);
-        if (idx !== -1) { trashBin.splice(idx, 1); saveTrash(); }
-        events.push(ev); saveEvents(); renderView(); updateBadges();
-      });
-      renderView(); updateBadges();
-    });
-  });
+const grid = document.getElementById(gridId);
+if (!items.length) {
+grid.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>目前沒有符合條件的活動</p></div>';
+return;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Card Entrance Animation + Lazy Loading
-   ═══════════════════════════════════════════════════════════════ */
+grid.innerHTML = items.map((e, i) => {
+const imgStyle = e.image ? `background-image:url(${JSON.stringify(e.image)})` : '';
+const gradContent = !e.image ? `<div class="card-grad grad-${sanitize(e.type)}"><div class="card-grad-text">${sanitize(e.name)}</div></div>` : '';
+const badgeClass = isPast(e.date) ? 'past' : (isToday(e.date) ? 'today-badge' : '');
+const faved = isFaved(e.id);
+return `<div class="event-card" data-id="${sanitize(e.id)}" style="transition-delay:${(i%12)*50}ms">
+<div class="card-img ${e.image ? 'lazy-load' : ''}" data-src="${sanitize(e.image)}" style="${imgStyle}">${gradContent}
+<span class="badge">${sanitize(e.type)}</span>
+<button class="card-fav ${faved?'faved':''}" data-id="${sanitize(e.id)}" title="${faved?'取消收藏':'加入收藏'}">${faved?'💕':'🤍'}</button>
+<button class="card-del-btn" data-id="${sanitize(e.id)}" title="刪除活動">✕</button>
+</div>
+<div class="card-body">
+<div class="date-row"><span class="date-badge ${badgeClass}">${isToday(e.date) ? '⭐ 今天' : sanitize(formatDate(e.date))}</span></div>
+<h3>${sanitize(e.name)}</h3>
+${e.time ? '<div class="meta">🕐 '+sanitize(e.time)+'</div>' : ''}
+${e.location ? '<div class="meta">📍 '+sanitize(e.location)+'</div>' : ''}
+<div class="meta">${e.fee ? '<span class="fee-tag">💵 '+sanitize(e.fee)+'</span>' : ''}${isPast(e.date) ? ' <span class="past-label">已結束</span>' : ''}</div>
+</div>
+</div>`;
+}).join('');
+grid.querySelectorAll('.event-card').forEach(el => {
+const ev = events.find(x => x.id === el.dataset.id);
+if (!ev) return;
+el.addEventListener('click', e => { if (!e.target.closest('.card-del-btn') && !e.target.closest('.card-fav')) openDetail(ev); });
+});
+grid.querySelectorAll('.card-fav').forEach(btn => {
+btn.addEventListener('click', e => { e.stopPropagation(); toggleFav(btn.dataset.id); });
+});
+grid.querySelectorAll('.card-del-btn').forEach(btn => {
+btn.addEventListener('click', e => {
+e.stopPropagation();
+if (!isAdmin) return;
+const ev = events.find(x => x.id === btn.dataset.id);
+if (!ev) return;
+if (!confirm(`確定刪除「${ev.name}」？此操作可從垃圾桶復原。`)) return;
+events = events.filter(x => x.id !== btn.dataset.id);
+loadTrash();
+trashBin.push({ event: ev, time: Date.now() });
+saveTrash(); saveEvents();
+showToast(`已刪除「${ev.name}」`, '復原', () => {
+loadTrash();
+const idx = trashBin.findIndex(t => t.event.id === ev.id);
+if (idx !== -1) { trashBin.splice(idx, 1); saveTrash(); }
+events.push(ev); saveEvents(); renderView(); updateBadges();
+});
+renderView(); updateBadges();
+});
+});
+}
 let cardObserver = null;
 function observeCards() {
-  if (cardObserver) cardObserver.disconnect();
-  cardObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        cardObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: .1, rootMargin: '0px 0px 80px 0px' });
-  document.querySelectorAll('.event-card').forEach(el => cardObserver.observe(el));
-
-  document.querySelectorAll('.card-img.lazy-load').forEach(el => {
-    const src = el.dataset.src;
-    if (!src) return;
-    const img = new Image();
-    img.onload = () => {
-      el.style.backgroundImage = `url(${JSON.stringify(src)})`;
-      el.classList.remove('lazy-load');
-      el.querySelector('.card-grad')?.remove();
-    };
-    img.src = src;
-  });
+if (cardObserver) cardObserver.disconnect();
+cardObserver = new IntersectionObserver(entries => {
+entries.forEach(entry => {
+if (entry.isIntersecting) {
+entry.target.classList.add('visible');
+cardObserver.unobserve(entry.target);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Detail Modal + URL Hash
-   ═══════════════════════════════════════════════════════════════ */
+});
+}, { threshold: .1, rootMargin: '0px 0px 80px 0px' });
+document.querySelectorAll('.event-card').forEach(el => cardObserver.observe(el));
+document.querySelectorAll('.card-img.lazy-load').forEach(el => {
+const src = el.dataset.src;
+if (!src) return;
+const img = new Image();
+img.onload = () => {
+el.style.backgroundImage = `url(${JSON.stringify(src)})`;
+el.classList.remove('lazy-load');
+el.querySelector('.card-grad')?.remove();
+};
+img.src = src;
+});
+}
 let currentDetailEvent = null;
-
 function openDetail(ev) {
-  currentDetailEvent = ev;
-  location.hash = 'event-'+ev.id;
-  document.getElementById('detailName').textContent = ev.name;
-  document.getElementById('detailDate').textContent = formatDate(ev.date);
-  document.getElementById('detailTime').textContent = ev.time || '未指定';
-  document.getElementById('detailLocation').textContent = ev.location || '未指定';
-  document.getElementById('detailType').textContent = ev.type;
-  document.getElementById('detailFee').textContent = ev.fee || '未指定';
-  document.getElementById('detailDesc').innerHTML = ev.desc ? sanitize(ev.desc).replace(/\n/g,'<br>') : '無簡介';
-  document.getElementById('detailNotes').innerHTML = ev.notes ? sanitize(ev.notes).replace(/\n/g,'<br>') : '無';
-  const img = document.getElementById('detailImg');
-  if (ev.image) { img.style.backgroundImage = `url(${JSON.stringify(ev.image)})`; img.textContent = ''; img.style.background = ''; img.className = 'detail-img'; }
-  else { img.style.backgroundImage = ''; img.className = 'detail-img card-grad grad-'+ev.type; img.textContent = ev.type; }
-  const q = encodeURIComponent(ev.name);
-  let detailHtml = '';
-  if (ev.link) {
-    detailHtml += `<a href="${sanitize(ev.link)}" target="_blank" rel="noopener noreferrer" class="social-link" style="background:var(--primary)">🔗 官方網站</a>`;
-  }
-  if (ev.fb) detailHtml += `<a href="${sanitize(ev.fb)}" target="_blank" rel="noopener noreferrer" class="social-link fb">📘 Facebook</a>`;
-  if (ev.ig) detailHtml += `<a href="${sanitize(ev.ig)}" target="_blank" rel="noopener noreferrer" class="social-link ig">📷 Instagram</a>`;
-  if (ev.x) detailHtml += `<a href="${sanitize(ev.x)}" target="_blank" rel="noopener noreferrer" class="social-link x">𝕏 X (Twitter)</a>`;
-  document.getElementById('detailLink').innerHTML = detailHtml
-    ? `<div style="display:flex;flex-wrap:wrap;gap:.5rem">${detailHtml}</div>`
-    : `<div style="display:flex;flex-wrap:wrap;gap:.5rem">
-        <a href="https://www.facebook.com/search/top?q=${q}" target="_blank" rel="noopener noreferrer" class="social-link fb">📘 Facebook</a>
-        <a href="https://www.instagram.com/explore/search/keyword/?q=${q}" target="_blank" rel="noopener noreferrer" class="social-link ig">📷 Instagram</a>
-        <a href="https://twitter.com/search?q=${q}" target="_blank" rel="noopener noreferrer" class="social-link x">𝕏 X (Twitter)</a>
-        <a href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener noreferrer" class="social-link google">🔍 Google 搜尋</a>
-       </div>`;
-  document.getElementById('detailFav').textContent = isFaved(ev.id) ? '💕 已收藏' : '❤️ 收藏';
-  document.getElementById('detailModal').classList.add('show');
+currentDetailEvent = ev;
+location.hash = 'event-'+ev.id;
+document.getElementById('detailName').textContent = ev.name;
+document.getElementById('detailDate').textContent = formatDate(ev.date);
+document.getElementById('detailTime').textContent = ev.time || '未指定';
+document.getElementById('detailLocation').textContent = ev.location || '未指定';
+document.getElementById('detailType').textContent = ev.type;
+document.getElementById('detailFee').textContent = ev.fee || '未指定';
+document.getElementById('detailDesc').innerHTML = ev.desc ? sanitize(ev.desc).replace(/\n/g,'<br>') : '無簡介';
+document.getElementById('detailNotes').innerHTML = ev.notes ? sanitize(ev.notes).replace(/\n/g,'<br>') : '無';
+const img = document.getElementById('detailImg');
+if (ev.image) { img.style.backgroundImage = `url(${JSON.stringify(ev.image)})`; img.textContent = ''; img.style.background = ''; img.className = 'detail-img'; }
+else { img.style.backgroundImage = ''; img.className = 'detail-img card-grad grad-'+ev.type; img.textContent = ev.type; }
+const q = encodeURIComponent(ev.name);
+let detailHtml = '';
+if (ev.link) {
+detailHtml += `<a href="${sanitize(ev.link)}" target="_blank" rel="noopener noreferrer" class="social-link" style="background:var(--primary)">🔗 官方網站</a>`;
 }
-
+if (ev.fb) detailHtml += `<a href="${sanitize(ev.fb)}" target="_blank" rel="noopener noreferrer" class="social-link fb">📘 Facebook</a>`;
+if (ev.ig) detailHtml += `<a href="${sanitize(ev.ig)}" target="_blank" rel="noopener noreferrer" class="social-link ig">📷 Instagram</a>`;
+if (ev.x) detailHtml += `<a href="${sanitize(ev.x)}" target="_blank" rel="noopener noreferrer" class="social-link x">𝕏 X (Twitter)</a>`;
+document.getElementById('detailLink').innerHTML = detailHtml
+? `<div style="display:flex;flex-wrap:wrap;gap:.5rem">${detailHtml}</div>`
+: `<div style="display:flex;flex-wrap:wrap;gap:.5rem">
+<a href="https:
+<a href="https:
+<a href="https:
+<a href="https:
+</div>`;
+document.getElementById('detailFav').textContent = isFaved(ev.id) ? '💕 已收藏' : '❤️ 收藏';
+document.getElementById('detailModal').classList.add('show');
+}
 function closeDetail() {
-  document.getElementById('detailModal').classList.remove('show');
-  if (location.hash.startsWith('#event-')) location.hash = '';
-  currentDetailEvent = null;
+document.getElementById('detailModal').classList.remove('show');
+if (location.hash.startsWith('#event-')) location.hash = '';
+currentDetailEvent = null;
 }
-
 function checkHash() {
-  if (location.hash.startsWith('#event-')) {
-    const id = location.hash.slice(7);
-    const ev = events.find(e => e.id === id);
-    if (ev) {
-      openDetail(ev);
-      setTimeout(() => {
-        document.querySelectorAll('.event-card[data-id="'+id+'"]').forEach(el => {
-          el.classList.add('hash-target');
-          el.scrollIntoView({ behavior:'smooth', block:'center' });
-        });
-      }, 400);
-    }
-  }
+if (location.hash.startsWith('#event-')) {
+const id = location.hash.slice(7);
+const ev = events.find(e => e.id === id);
+if (ev) {
+openDetail(ev);
+setTimeout(() => {
+document.querySelectorAll('.event-card[data-id="'+id+'"]').forEach(el => {
+el.classList.add('hash-target');
+el.scrollIntoView({ behavior:'smooth', block:'center' });
+});
+}, 400);
 }
-
+}
+}
 document.getElementById('detailClose').addEventListener('click', closeDetail);
 document.getElementById('detailModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDetail(); });
-
 document.getElementById('detailFav').addEventListener('click', () => {
-  if (!currentDetailEvent) return;
-  toggleFav(currentDetailEvent.id, true);
+if (!currentDetailEvent) return;
+toggleFav(currentDetailEvent.id, true);
 });
-
 document.getElementById('detailRemind').addEventListener('click', () => {
-  if (!currentDetailEvent) return;
-  if (!('Notification' in window)) { showToast('此瀏覽器不支援桌面通知'); return; }
-  if (Notification.permission === 'granted') {
-    scheduleReminder(currentDetailEvent);
-  } else if (Notification.permission !== 'denied') {
-    Notification.requestPermission().then(p => { if (p === 'granted') scheduleReminder(currentDetailEvent); });
-  } else {
-    showToast('通知已封鎖，請至瀏覽器設定開啟');
-  }
+if (!currentDetailEvent) return;
+if (!('Notification' in window)) { showToast('此瀏覽器不支援桌面通知'); return; }
+if (Notification.permission === 'granted') {
+scheduleReminder(currentDetailEvent);
+} else if (Notification.permission !== 'denied') {
+Notification.requestPermission().then(p => { if (p === 'granted') scheduleReminder(currentDetailEvent); });
+} else {
+showToast('通知已封鎖，請至瀏覽器設定開啟');
+}
 });
-
 document.getElementById('detailShare').addEventListener('click', () => {
-  if (!currentDetailEvent) return;
-  shareEventImage(currentDetailEvent);
+if (!currentDetailEvent) return;
+shareEventImage(currentDetailEvent);
 });
-
 document.getElementById('detailIcal').addEventListener('click', () => {
-  if (!currentDetailEvent) return;
-  downloadIcal(currentDetailEvent);
+if (!currentDetailEvent) return;
+downloadIcal(currentDetailEvent);
 });
-
-/* ═══════════════════════════════════════════════════════════════
-   Reminders
-   ═══════════════════════════════════════════════════════════════ */
 function scheduleReminder(ev) {
-  const reminderKey = 'tw_reminders';
-  let reminders = [];
-  try { const s = localStorage.getItem(reminderKey); if (s) reminders = JSON.parse(s); } catch(_) {}
-  const existing = reminders.find(r => r.id === ev.id && r.tab === activeTab);
-  if (existing) { showToast('已設定過提醒'); return; }
-  reminders.push({ id: ev.id, tab: activeTab, name: ev.name, date: ev.date, time: ev.time || '10:00' });
-  safeSetItem(reminderKey, JSON.stringify(reminders));
-  showToast(`已設定「${ev.name}」提醒`);
-  schedulePendingReminders();
+const reminderKey = 'tw_reminders';
+let reminders = [];
+try { const s = localStorage.getItem(reminderKey); if (s) reminders = JSON.parse(s); } catch(_) {}
+const existing = reminders.find(r => r.id === ev.id && r.tab === activeTab);
+if (existing) { showToast('已設定過提醒'); return; }
+reminders.push({ id: ev.id, tab: activeTab, name: ev.name, date: ev.date, time: ev.time || '10:00' });
+safeSetItem(reminderKey, JSON.stringify(reminders));
+showToast(`已設定「${ev.name}」提醒`);
+schedulePendingReminders();
 }
-
 function schedulePendingReminders() {
-  const reminderKey = 'tw_reminders';
-  let reminders = [];
-  try { const s = localStorage.getItem(reminderKey); if (s) reminders = JSON.parse(s); } catch(_) { return; }
-  const now = Date.now();
-  reminders = reminders.filter(r => {
-    const t = new Date(r.date + 'T' + (r.time || '10:00') + ':00').getTime();
-    if (t <= now) return false;
-    const delay = t - now - 3600000;
-    if (delay > 0) {
-      setTimeout(() => {
-        try { new Notification('📢 活動提醒', { body: `「${r.name}」將於今天舉辦！`, icon: '' }); } catch(_) {}
-      }, delay);
-    }
-    const dayBefore = t - now - 86400000;
-    if (dayBefore > 0) {
-      setTimeout(() => {
-        try { new Notification('📢 活動提醒', { body: `明天「${r.name}」就要舉辦了！`, icon: '' }); } catch(_) {}
-      }, dayBefore);
-    }
-    return true;
-  });
-  safeSetItem(reminderKey, JSON.stringify(reminders));
+const reminderKey = 'tw_reminders';
+let reminders = [];
+try { const s = localStorage.getItem(reminderKey); if (s) reminders = JSON.parse(s); } catch(_) { return; }
+const now = Date.now();
+reminders = reminders.filter(r => {
+const t = new Date(r.date + 'T' + (r.time || '10:00') + ':00').getTime();
+if (t <= now) return false;
+const delay = t - now - 3600000;
+if (delay > 0) {
+setTimeout(() => {
+try { new Notification('📢 活動提醒', { body: `「${r.name}」將於今天舉辦！`, icon: '' }); } catch(_) {}
+}, delay);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Share Image (Canvas)
-   ═══════════════════════════════════════════════════════════════ */
+const dayBefore = t - now - 86400000;
+if (dayBefore > 0) {
+setTimeout(() => {
+try { new Notification('📢 活動提醒', { body: `明天「${r.name}」就要舉辦了！`, icon: '' }); } catch(_) {}
+}, dayBefore);
+}
+return true;
+});
+safeSetItem(reminderKey, JSON.stringify(reminders));
+}
 function shareEventImage(ev) {
-  const c = document.createElement('canvas');
-  c.width = 600; c.height = 315;
-  const ctx = c.getContext('2d');
-
-  const grad = ctx.createLinearGradient(0,0,600,315);
-  const typeGradMap = {
-    '同人誌即賣會':['#f093fb','#f5576c'],'動漫展':['#4facfe','#00f2fe'],
-    'COSPLAY':['#a18cd1','#fbc2eb'],'ACG音樂會':['#ff0844','#ffb199'],
-    '座談講座':['#667eea','#764ba2'],'市集':['#43e97b','#38f9d7'],
-    '成人展':['#2d1b36','#c9407a'],'同人創作':['#4a0033','#ff6b9d'],
-    '情趣用品':['#1a0a2e','#e74c9e'],'成人市集':['#2c1810','#e8916a'],
-  };
-  const [c1,c2] = typeGradMap[ev.type] || ['#667eea','#764ba2'];
-  grad.addColorStop(0,c1); grad.addColorStop(1,c2);
-  ctx.fillStyle = grad; ctx.fillRect(0,0,600,315);
-
-  ctx.fillStyle = 'rgba(0,0,0,.2)';
-  ctx.fillRect(0,0,600,315);
-
-  ctx.fillStyle = '#fff';
-  ctx.textBaseline = 'middle';
-  ctx.font = 'bold 30px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
-  ctx.textAlign = 'center';
-  wrapText(ctx, ev.name, 300, 90, 520, 42);
-
-  ctx.font = '18px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
-  const meta = `${formatDate(ev.date)}${ev.time ? '  '+ev.time : ''}`;
-  ctx.fillText(meta, 300, 175);
-
-  if (ev.location) {
-    ctx.fillText('📍 '+ev.location, 300, 210);
-  }
-
-  ctx.font = '16px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,.7)';
-  ctx.fillText('台灣活動總覽', 300, 280);
-
-  if (navigator.share) {
-    c.toBlob(blob => {
-      if (!blob) return;
-      try { navigator.share({ files: [new File([blob], 'event.png', { type: 'image/png' })] }); } catch(_) {}
-    });
-  } else {
-    const link = document.createElement('a');
-    link.download = 'event-'+ev.id+'.png';
-    link.href = c.toDataURL();
-    link.click();
-  }
+const c = document.createElement('canvas');
+c.width = 600; c.height = 315;
+const ctx = c.getContext('2d');
+const grad = ctx.createLinearGradient(0,0,600,315);
+const typeGradMap = {
+'同人誌即賣會':['#f093fb','#f5576c'],'動漫展':['#4facfe','#00f2fe'],
+'COSPLAY':['#a18cd1','#fbc2eb'],'ACG音樂會':['#ff0844','#ffb199'],
+'座談講座':['#667eea','#764ba2'],'市集':['#43e97b','#38f9d7'],
+'成人展':['#2d1b36','#c9407a'],'同人創作':['#4a0033','#ff6b9d'],
+'情趣用品':['#1a0a2e','#e74c9e'],'成人市集':['#2c1810','#e8916a'],
+};
+const [c1,c2] = typeGradMap[ev.type] || ['#667eea','#764ba2'];
+grad.addColorStop(0,c1); grad.addColorStop(1,c2);
+ctx.fillStyle = grad; ctx.fillRect(0,0,600,315);
+ctx.fillStyle = 'rgba(0,0,0,.2)';
+ctx.fillRect(0,0,600,315);
+ctx.fillStyle = '#fff';
+ctx.textBaseline = 'middle';
+ctx.font = 'bold 30px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+ctx.textAlign = 'center';
+wrapText(ctx, ev.name, 300, 90, 520, 42);
+ctx.font = '18px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+const meta = `${formatDate(ev.date)}${ev.time ? '  '+ev.time : ''}`;
+ctx.fillText(meta, 300, 175);
+if (ev.location) {
+ctx.fillText('📍 '+ev.location, 300, 210);
 }
-
+ctx.font = '16px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+ctx.fillStyle = 'rgba(255,255,255,.7)';
+ctx.fillText('台灣活動總覽', 300, 280);
+if (navigator.share) {
+c.toBlob(blob => {
+if (!blob) return;
+try { navigator.share({ files: [new File([blob], 'event.png', { type: 'image/png' })] }); } catch(_) {}
+});
+} else {
+const link = document.createElement('a');
+link.download = 'event-'+ev.id+'.png';
+link.href = c.toDataURL();
+link.click();
+}
+}
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const chars = text.split('');
-  let line = '';
-  let lines = [];
-  for (const ch of chars) {
-    const test = line + ch;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      lines.push(line); line = ch;
-    } else line = test;
-  }
-  lines.push(line);
-  const startY = y - ((lines.length - 1) * lineHeight) / 2;
-  lines.forEach((l,i) => ctx.fillText(l, x, startY + i * lineHeight));
+const chars = text.split('');
+let line = '';
+let lines = [];
+for (const ch of chars) {
+const test = line + ch;
+if (ctx.measureText(test).width > maxWidth && line) {
+lines.push(line); line = ch;
+} else line = test;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   iCal Export
-   ═══════════════════════════════════════════════════════════════ */
+lines.push(line);
+const startY = y - ((lines.length - 1) * lineHeight) / 2;
+lines.forEach((l,i) => ctx.fillText(l, x, startY + i * lineHeight));
+}
 function downloadIcal(ev) {
-  const d = ev.date.replace(/-/g,'');
-  const t = (ev.time || '1000').replace(':','');
-  const dtStart = d + 'T' + t + '00';
-  const dtEnd = d + 'T' + String(parseInt(t.slice(0,2))+2).padStart(2,'0') + t.slice(2) + '00';
-  const ics = [
-    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TaiwanEvents//TW',
-    'BEGIN:VEVENT',
-    'UID:'+ev.id+'@tw-events',
-    'DTSTART:'+dtStart,
-    'DTEND:'+dtEnd,
-    'SUMMARY:'+ev.name,
-    'DESCRIPTION:'+(ev.desc||'').replace(/\n/g,'\\n'),
-    'LOCATION:'+(ev.location||''),
-    'END:VEVENT','END:VCALENDAR'
-  ].join('\r\n');
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = ev.name.replace(/[\/\\?*]/g,'_')+'.ics';
-  link.click();
-  URL.revokeObjectURL(link.href);
+const d = ev.date.replace(/-/g,'');
+const t = (ev.time || '1000').replace(':','');
+const dtStart = d + 'T' + t + '00';
+const dtEnd = d + 'T' + String(parseInt(t.slice(0,2))+2).padStart(2,'0') + t.slice(2) + '00';
+const ics = [
+'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-
+'BEGIN:VEVENT',
+'UID:'+ev.id+'@tw-events',
+'DTSTART:'+dtStart,
+'DTEND:'+dtEnd,
+'SUMMARY:'+ev.name,
+'DESCRIPTION:'+(ev.desc||'').replace(/\n/g,'\\n'),
+'LOCATION:'+(ev.location||''),
+'END:VEVENT','END:VCALENDAR'
+].join('\r\n');
+const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+const link = document.createElement('a');
+link.href = URL.createObjectURL(blob);
+link.download = ev.name.replace(/[\/\\?*]/g,'_')+'.ics';
+link.click();
+URL.revokeObjectURL(link.href);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Toast
-   ═══════════════════════════════════════════════════════════════ */
 function showToast(msg, actionLabel, actionFn) {
-  const container = document.getElementById('toastContainer');
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  const text = document.createElement('span');
-  text.style.flex = '1';
-  text.textContent = msg;
-  toast.appendChild(text);
-  if (actionLabel && actionFn) {
-    const btn = document.createElement('button');
-    btn.textContent = actionLabel;
-    btn.addEventListener('click', () => { actionFn(); toast.classList.add('toast-out'); setTimeout(() => toast.remove(), 300); });
-    toast.appendChild(btn);
-  }
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add('toast-out');
-    setTimeout(() => toast.remove(), 300);
-  }, 8000);
+const container = document.getElementById('toastContainer');
+const toast = document.createElement('div');
+toast.className = 'toast';
+const text = document.createElement('span');
+text.style.flex = '1';
+text.textContent = msg;
+toast.appendChild(text);
+if (actionLabel && actionFn) {
+const btn = document.createElement('button');
+btn.textContent = actionLabel;
+btn.addEventListener('click', () => { actionFn(); toast.classList.add('toast-out'); setTimeout(() => toast.remove(), 300); });
+toast.appendChild(btn);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Autocomplete
-   ═══════════════════════════════════════════════════════════════ */
+container.appendChild(toast);
+setTimeout(() => {
+toast.classList.add('toast-out');
+setTimeout(() => toast.remove(), 300);
+}, 8000);
+}
 function updateAutocomplete() {
-  const dl = document.getElementById('searchSuggestions');
-  const seen = new Set();
-  dl.innerHTML = '';
-  events.forEach(e => {
-    [e.name, e.location].forEach(v => {
-      if (v && !seen.has(v)) { seen.add(v); const o = document.createElement('option'); o.value = v; dl.appendChild(o); }
-    });
-  });
+const dl = document.getElementById('searchSuggestions');
+const seen = new Set();
+dl.innerHTML = '';
+events.forEach(e => {
+[e.name, e.location].forEach(v => {
+if (v && !seen.has(v)) { seen.add(v); const o = document.createElement('option'); o.value = v; dl.appendChild(o); }
+});
+});
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Calendar (enlarged)
-   ═══════════════════════════════════════════════════════════════ */
 let calYear;
 function initCalendar() { calYear = new Date().getFullYear(); }
 function renderCalendar() {
-  document.getElementById('calYearLabel').textContent = calYear;
-  const scrollEl = document.getElementById('calScroll');
-  const filtered = getFiltered();
-  const map = {};
-  filtered.forEach(e => { if (!map[e.date]) map[e.date] = []; map[e.date].push(e); });
-  const now = new Date();
-  const curMonth = now.getMonth(), curYear = now.getFullYear();
-  let html = '';
-  let monthHasEvent = [];
-  for (let m = 0; m < 12; m++) {
-    const dim = new Date(calYear, m+1, 0).getDate();
-    let hasEvent = false;
-    for (let d = 1; d <= dim; d++) {
-      const ds = `${calYear}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if (map[ds] && map[ds].length) { hasEvent = true; break; }
-    }
-    monthHasEvent.push(hasEvent);
-  }
-  html += `<div class="cal-month-bar">${monthHasEvent.map(h => `<div class="bar-seg${h?' has-event':''}"></div>`).join('')}</div>`;
-  for (let m = 0; m < 12; m++) {
-    const dim = new Date(calYear, m+1, 0).getDate();
-    const fd = new Date(calYear, m, 1).getDay();
-    const dip = new Date(calYear, m, 0).getDate();
-    let count = 0, cells = '';
-    for (let i = 0; i < fd; i++) cells += `<span class="day-cell other-month">${dip - fd + i + 1}</span>`;
-    for (let d = 1; d <= dim; d++) {
-      const ds = `${calYear}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if (map[ds] && map[ds].length) count++;
-      const t = (calYear === curYear && m === curMonth && d === now.getDate());
-      cells += `<span class="day-cell${map[ds]&&map[ds].length?' has-event':''}${t?' today':''}">${d}</span>`;
-    }
-    for (let i = 1; i <= (7 - (fd + dim) % 7) % 7; i++) cells += `<span class="day-cell other-month">${i}</span>`;
-    html += `<div class="cal-month-col${calYear===curYear&&m===curMonth?' is-current':''}"><div class="cal-month-title">${m+1}月${count?` <span class="event-count">· ${count} 天</span>`:''}</div><div class="cal-month-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="cal-month-days">${cells}</div></div>`;
-  }
-  scrollEl.innerHTML = html;
-  scrollEl.classList.remove('cal-fade-enter');
-  void scrollEl.offsetWidth;
-  scrollEl.classList.add('cal-fade-enter');
-  requestAnimationFrame(() => { const c = scrollEl.querySelector('.is-current'); if (c) c.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }); });
+document.getElementById('calYearLabel').textContent = calYear;
+const scrollEl = document.getElementById('calScroll');
+const filtered = getFiltered();
+const map = {};
+filtered.forEach(e => { if (!map[e.date]) map[e.date] = []; map[e.date].push(e); });
+const now = new Date();
+const curMonth = now.getMonth(), curYear = now.getFullYear();
+let html = '';
+let monthHasEvent = [];
+for (let m = 0; m < 12; m++) {
+const dim = new Date(calYear, m+1, 0).getDate();
+let hasEvent = false;
+for (let d = 1; d <= dim; d++) {
+const ds = `${calYear}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+if (map[ds] && map[ds].length) { hasEvent = true; break; }
+}
+monthHasEvent.push(hasEvent);
+}
+html += `<div class="cal-month-bar">${monthHasEvent.map(h => `<div class="bar-seg${h?' has-event':''}"></div>`).join('')}</div>`;
+for (let m = 0; m < 12; m++) {
+const dim = new Date(calYear, m+1, 0).getDate();
+const fd = new Date(calYear, m, 1).getDay();
+const dip = new Date(calYear, m, 0).getDate();
+let count = 0, cells = '';
+for (let i = 0; i < fd; i++) cells += `<span class="day-cell other-month">${dip - fd + i + 1}</span>`;
+for (let d = 1; d <= dim; d++) {
+const ds = `${calYear}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+if (map[ds] && map[ds].length) count++;
+const t = (calYear === curYear && m === curMonth && d === now.getDate());
+cells += `<span class="day-cell${map[ds]&&map[ds].length?' has-event':''}${t?' today':''}">${d}</span>`;
+}
+for (let i = 1; i <= (7 - (fd + dim) % 7) % 7; i++) cells += `<span class="day-cell other-month">${i}</span>`;
+html += `<div class="cal-month-col${calYear===curYear&&m===curMonth?' is-current':''}"><div class="cal-month-title">${m+1}月${count?` <span class="event-count">· ${count} 天</span>`:''}</div><div class="cal-month-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="cal-month-days">${cells}</div></div>`;
+}
+scrollEl.innerHTML = html;
+scrollEl.classList.remove('cal-fade-enter');
+void scrollEl.offsetWidth;
+scrollEl.classList.add('cal-fade-enter');
+requestAnimationFrame(() => { const c = scrollEl.querySelector('.is-current'); if (c) c.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }); });
 }
 document.getElementById('calPrev').addEventListener('click', () => { calYear--; renderCalendar(); });
 document.getElementById('calNext').addEventListener('click', () => { calYear++; renderCalendar(); });
-
-/* ═══════════════════════════════════════════════════════════════
-   Edit Modal + Duplicate Check
-   ═══════════════════════════════════════════════════════════════ */
 function populateTypeOptions() {
-  const cfg = getTabConfig();
-  const sel = document.getElementById('eType');
-  sel.innerHTML = '';
-  cfg.typeOptions.forEach(o => {
-    const opt = document.createElement('option');
-    opt.value = o; opt.textContent = o;
-    sel.appendChild(opt);
-  });
+const cfg = getTabConfig();
+const sel = document.getElementById('eType');
+sel.innerHTML = '';
+cfg.typeOptions.forEach(o => {
+const opt = document.createElement('option');
+opt.value = o; opt.textContent = o;
+sel.appendChild(opt);
+});
 }
-
 function openEditModal(d) {
-  if (!isAdmin) return;
-  populateTypeOptions();
-  editingId = d ? d.id : null;
-  document.getElementById('modalTitle').textContent = editingId ? '編輯活動' : '新增活動';
-  ['eName','eType','eDate','eTime','eLocation','eFee','eImage','eDesc','eNotes','eLink','eFb','eIg','eX','eTags'].forEach(id => {
-    const el = document.getElementById(id);
-    if (id === 'eType') el.value = d ? d.type : getTabConfig().typeOptions[0];
-    else if (id === 'eDate') el.value = d ? d.date : '';
-    else if (id === 'eFee') el.value = d ? (d.fee || '') : '';
-    else if (id === 'eTags') el.value = d && d.tags ? d.tags.join(',') : '';
-    else el.value = d ? (d[id.replace('e', '').toLowerCase()] || '') : '';
-  });
-  document.getElementById('editModal').classList.add('show');
+if (!isAdmin) return;
+populateTypeOptions();
+editingId = d ? d.id : null;
+document.getElementById('modalTitle').textContent = editingId ? '編輯活動' : '新增活動';
+['eName','eType','eDate','eTime','eLocation','eFee','eImage','eDesc','eNotes','eLink','eFb','eIg','eX','eTags'].forEach(id => {
+const el = document.getElementById(id);
+if (id === 'eType') el.value = d ? d.type : getTabConfig().typeOptions[0];
+else if (id === 'eDate') el.value = d ? d.date : '';
+else if (id === 'eFee') el.value = d ? (d.fee || '') : '';
+else if (id === 'eTags') el.value = d && d.tags ? d.tags.join(',') : '';
+else el.value = d ? (d[id.replace('e', '').toLowerCase()] || '') : '';
+});
+document.getElementById('editModal').classList.add('show');
 }
 function closeEditModal() { document.getElementById('editModal').classList.remove('show'); editingId = null; }
 document.getElementById('addBtn').addEventListener('click', () => openEditModal(null));
@@ -1267,201 +886,165 @@ document.getElementById('cancelBtn').addEventListener('click', closeEditModal);
 document.getElementById('editClose').addEventListener('click', closeEditModal);
 document.getElementById('editModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEditModal(); });
 document.getElementById('eventForm').addEventListener('submit', e => {
-  e.preventDefault();
-  if (!isAdmin) return;
-  const name = eName.value.trim();
-  const date = eDate.value;
-  const dup = events.find(ev => ev.name === name && ev.date === date && ev.id !== editingId);
-  if (dup) {
-    showToast(`「${name}」在當天已有相同活動，請檢查`);
-    return;
-  }
-  const tags = eTags.value.trim() ? eTags.value.split(',').map(s => s.trim()).filter(Boolean) : [];
-  const urlFields = { image: eImage.value.trim(), link: eLink.value.trim(), fb: eFb.value.trim(), ig: eIg.value.trim(), x: eX.value.trim() };
-  for (const [k, v] of Object.entries(urlFields)) {
-    if (v && !/^https?:\/\//i.test(v)) { showToast(`「${k}」網址格式不正確，需以 http:// 或 https:// 開頭`); return; }
-    if (v && /javascript:/i.test(v)) { showToast('不合法的網址'); return; }
-  }
-  const data = { name, type: eType.value, date, time: eTime.value, location: eLocation.value.trim(), fee: eFee.value.trim(), ...urlFields, desc: eDesc.value.trim(), notes: eNotes.value.trim(), tags };
-  if (editingId) { const idx = events.findIndex(ev => ev.id === editingId); if (idx !== -1) events[idx] = { ...events[idx], ...data }; }
-  else { data.id = activeTab[0]+Date.now().toString(36)+Math.random().toString(36).slice(2,6); events.push(data); }
-  saveEvents(); closeEditModal(); renderView(); updateBadges();
-  showToast(editingId ? '已更新活動' : '已新增活動');
+e.preventDefault();
+if (!isAdmin) return;
+const name = eName.value.trim();
+const date = eDate.value;
+const dup = events.find(ev => ev.name === name && ev.date === date && ev.id !== editingId);
+if (dup) {
+showToast(`「${name}」在當天已有相同活動，請檢查`);
+return;
+}
+const tags = eTags.value.trim() ? eTags.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+const urlFields = { image: eImage.value.trim(), link: eLink.value.trim(), fb: eFb.value.trim(), ig: eIg.value.trim(), x: eX.value.trim() };
+for (const [k, v] of Object.entries(urlFields)) {
+if (v && !/^https?:\/\
+if (v && /javascript:/i.test(v)) { showToast('不合法的網址'); return; }
+}
+const data = { name, type: eType.value, date, time: eTime.value, location: eLocation.value.trim(), fee: eFee.value.trim(), ...urlFields, desc: eDesc.value.trim(), notes: eNotes.value.trim(), tags };
+if (editingId) { const idx = events.findIndex(ev => ev.id === editingId); if (idx !== -1) events[idx] = { ...events[idx], ...data }; }
+else { data.id = activeTab[0]+Date.now().toString(36)+Math.random().toString(36).slice(2,6); events.push(data); }
+saveEvents(); closeEditModal(); renderView(); updateBadges();
+showToast(editingId ? '已更新活動' : '已新增活動');
 });
 document.getElementById('sortBy').addEventListener('change', renderView);
 document.getElementById('searchInput').addEventListener('input', renderView);
-
-/* ═══════════════════════════════════════════════════════════════
-   Keyboard Shortcuts
-   ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    if (document.getElementById('detailModal').classList.contains('show')) closeDetail();
-    else if (document.getElementById('editModal').classList.contains('show')) closeEditModal();
-    else if (document.getElementById('authOverlay').classList.contains('show')) { authSkip.click(); }
-  }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-    e.preventDefault();
-    document.getElementById('searchInput').focus();
-  }
-});
-
-/* ═══════════════════════════════════════════════════════════════
-   PWA
-   ═══════════════════════════════════════════════════════════════ */
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
+if (e.key === 'Escape') {
+if (document.getElementById('detailModal').classList.contains('show')) closeDetail();
+else if (document.getElementById('editModal').classList.contains('show')) closeEditModal();
+else if (document.getElementById('authOverlay').classList.contains('show')) { authSkip.click(); }
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Backup / Restore
-   ═══════════════════════════════════════════════════════════════ */
-document.getElementById('backupBtn').addEventListener('click', () => {
-  const data = {};
-  Object.keys(TABS).forEach(t => {
-    try { const s = localStorage.getItem(TABS[t].key); data[t] = s ? JSON.parse(s) : []; } catch(_) { data[t] = []; }
-  });
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  const d = new Date().toISOString().slice(0,10);
-  link.download = 'tw-events-backup-'+d+'.json';
-  link.click();
-  URL.revokeObjectURL(link.href);
-  showToast('資料已備份');
+if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+e.preventDefault();
+document.getElementById('searchInput').focus();
+}
 });
-
+if ('serviceWorker' in navigator) {
+window.addEventListener('load', () => {
+navigator.serviceWorker.register('sw.js').catch(() => {});
+});
+}
+document.getElementById('backupBtn').addEventListener('click', () => {
+const data = {};
+Object.keys(TABS).forEach(t => {
+try { const s = localStorage.getItem(TABS[t].key); data[t] = s ? JSON.parse(s) : []; } catch(_) { data[t] = []; }
+});
+const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+const link = document.createElement('a');
+link.href = URL.createObjectURL(blob);
+const d = new Date().toISOString().slice(0,10);
+link.download = 'tw-events-backup-'+d+'.json';
+link.click();
+URL.revokeObjectURL(link.href);
+showToast('資料已備份');
+});
 document.getElementById('restoreBtn').addEventListener('click', () => {
-  document.getElementById('restoreInput').click();
+document.getElementById('restoreInput').click();
 });
 document.getElementById('restoreInput').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      Object.keys(TABS).forEach(t => {
-        if (Array.isArray(data[t])) safeSetItem(TABS[t].key, JSON.stringify(data[t]));
-      });
-      loadEvents(); updateBadges(); renderView();
-      showToast('資料已還原');
-    } catch(_) { showToast('檔案格式錯誤，無法還原'); }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
+const file = e.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = (ev) => {
+try {
+const data = JSON.parse(ev.target.result);
+Object.keys(TABS).forEach(t => {
+if (Array.isArray(data[t])) safeSetItem(TABS[t].key, JSON.stringify(data[t]));
 });
-
-/* ═══════════════════════════════════════════════════════════════
-   Trash Manager
-   ═══════════════════════════════════════════════════════════════ */
+loadEvents(); updateBadges(); renderView();
+showToast('資料已還原');
+} catch(_) { showToast('檔案格式錯誤，無法還原'); }
+};
+reader.readAsText(file);
+e.target.value = '';
+});
 function purgeTrash() {
-  loadTrash();
-  const cutoff = Date.now() - 30000;
-  const before = trashBin.length;
-  trashBin = trashBin.filter(t => t.time > cutoff);
-  if (trashBin.length !== before) saveTrash();
+loadTrash();
+const cutoff = Date.now() - 30000;
+const before = trashBin.length;
+trashBin = trashBin.filter(t => t.time > cutoff);
+if (trashBin.length !== before) saveTrash();
 }
-
 document.getElementById('trashBtn').addEventListener('click', () => {
-  loadTrash();
-  if (!trashBin.length) { showToast('垃圾桶是空的'); return; }
-  const names = trashBin.map(t => '• '+t.event.name).join('\n');
-  if (confirm(`垃圾桶中有 ${trashBin.length} 筆活動：\n${names}\n\n確定永久刪除？`)) {
-    trashBin = []; saveTrash();
-    showToast('垃圾桶已清空');
-  }
+loadTrash();
+if (!trashBin.length) { showToast('垃圾桶是空的'); return; }
+const names = trashBin.map(t => '• '+t.event.name).join('\n');
+if (confirm(`垃圾桶中有 ${trashBin.length} 筆活動：\n${names}\n\n確定永久刪除？`)) {
+trashBin = []; saveTrash();
+showToast('垃圾桶已清空');
+}
 });
-
-/* ═══════════════════════════════════════════════════════════════
-   Visitor Count
-   ═══════════════════════════════════════════════════════════════ */
 function trackVisitor() {
-  let c = parseInt(localStorage.getItem('tw_acg_visitors') || '0');
-  if (!localStorage.getItem('tw_acg_visited')) { c++; safeSetItem('tw_acg_visitors', c.toString()); safeSetItem('tw_acg_visited', '1'); }
-  document.getElementById('visitorCount').textContent = c;
+let c = parseInt(localStorage.getItem('tw_acg_visitors') || '0');
+if (!localStorage.getItem('tw_acg_visited')) { c++; safeSetItem('tw_acg_visitors', c.toString()); safeSetItem('tw_acg_visited', '1'); }
+document.getElementById('visitorCount').textContent = c;
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Periodic Refresh (every 8 hours)
-   ═══════════════════════════════════════════════════════════════ */
 const REFRESH_INTERVAL_MS = 8 * 60 * 60 * 1000;
-
 function periodicRefresh() {
-  const now = Date.now();
-  const lastRefresh = localStorage.getItem('tw_acg_last_refresh');
-  if (lastRefresh) {
-    const lastTs = parseInt(lastRefresh);
-    if (!isNaN(lastTs) && (now - lastTs) < REFRESH_INTERVAL_MS) return;
-  }
-
-  [TABS.acg, TABS.adult].forEach(cfg => {
-    try {
-      let stored = [];
-      const s = localStorage.getItem(cfg.key);
-      if (s) stored = JSON.parse(s);
-      const tabName = cfg.key === 'tw_acg_events' ? 'acg' : 'adult';
-      EVENTS_DATA[tabName].forEach(def => {
-        const idx = stored.findIndex(e => e.id === def.id);
-        if (idx !== -1) {
-          stored[idx].notes = def.notes;
-          stored[idx].desc = def.desc;
-          stored[idx].link = def.link;
-          stored[idx].time = def.time;
-          stored[idx].location = def.location;
-          stored[idx].fee = def.fee;
-        } else {
-          stored.push({ ...def });
-        }
-      });
-      safeSetItem(cfg.key, JSON.stringify(stored));
-    } catch (_) {}
-  });
-
-  safeSetItem('tw_acg_last_refresh', now.toString());
-  document.getElementById('lastRefreshTime').textContent = '剛剛';
-
-  loadEvents();
-  updateBadges();
-  renderView();
+const now = Date.now();
+const lastRefresh = localStorage.getItem('tw_acg_last_refresh');
+if (lastRefresh) {
+const lastTs = parseInt(lastRefresh);
+if (!isNaN(lastTs) && (now - lastTs) < REFRESH_INTERVAL_MS) return;
 }
-
+[TABS.acg, TABS.adult].forEach(cfg => {
+try {
+let stored = [];
+const s = localStorage.getItem(cfg.key);
+if (s) stored = JSON.parse(s);
+const tabName = cfg.key === 'tw_acg_events' ? 'acg' : 'adult';
+EVENTS_DATA[tabName].forEach(def => {
+const idx = stored.findIndex(e => e.id === def.id);
+if (idx !== -1) {
+stored[idx].notes = def.notes;
+stored[idx].desc = def.desc;
+stored[idx].link = def.link;
+stored[idx].time = def.time;
+stored[idx].location = def.location;
+stored[idx].fee = def.fee;
+} else {
+stored.push({ ...def });
+}
+});
+safeSetItem(cfg.key, JSON.stringify(stored));
+} catch (_) {}
+});
+safeSetItem('tw_acg_last_refresh', now.toString());
+document.getElementById('lastRefreshTime').textContent = '剛剛';
+loadEvents();
+updateBadges();
+renderView();
+}
 function schedulePeriodicRefresh() {
-  setInterval(() => {
-    periodicRefresh();
-    purgeTrash();
-  }, REFRESH_INTERVAL_MS);
+setInterval(() => {
+periodicRefresh();
+purgeTrash();
+}, REFRESH_INTERVAL_MS);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   Init
-   ═══════════════════════════════════════════════════════════════ */
 loadEvents();
 initCalendar();
 initSecurity();
 trackVisitor();
 purgeTrash();
 schedulePendingReminders();
-
 const lastRefreshInit = localStorage.getItem('tw_acg_last_refresh');
 if (lastRefreshInit) {
-  const ts = parseInt(lastRefreshInit);
-  document.getElementById('lastRefreshTime').textContent = isNaN(ts) ? lastRefreshInit.replace(/-/g, '/') : formatTimeAgo(ts);
+const ts = parseInt(lastRefreshInit);
+document.getElementById('lastRefreshTime').textContent = isNaN(ts) ? lastRefreshInit.replace(/-/g, '/') : formatTimeAgo(ts);
 } else {
-  document.getElementById('lastRefreshTime').textContent = '尚未更新';
+document.getElementById('lastRefreshTime').textContent = '尚未更新';
 }
 periodicRefresh();
-
 updateBadges();
 updateFilterOptions();
 renderView();
 schedulePeriodicRefresh();
 checkHash();
+window.addEventListener('hashchange', checkHash);</script>
 
-window.addEventListener('hashchange', checkHash);
+<script>
+(()=>{document.addEventListener('contextmenu',function(e){e.preventDefault()});document.addEventListener('keydown',function(e){if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='i'||e.key==='J'||e.key==='j'||e.key==='C'||e.key==='c'))||(e.ctrlKey&&e.key==='u')){e.preventDefault()}});let c=0;document.addEventListener('keydown',function(e){if(e.key==='F12'){c++;if(c>5){document.body.innerHTML=''}}else{c=0}});console.log('%c\ud83d\udeab','font-size:50px');console.log('%cDO NOT paste any code here','font-size:20px')})();
 </script>
-
 </body>
 </html>
