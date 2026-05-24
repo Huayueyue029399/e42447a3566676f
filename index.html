@@ -264,24 +264,17 @@ document.getElementById('adminBtn').addEventListener('click', () => {
 if (!isAdmin) showAuth(localStorage.getItem(AUTH_KEY) ? 'login' : 'set');
 });
 document.getElementById('logoutBtn').addEventListener('click', () => {
-sessionStorage.removeItem('tw_acg_admin');
-isAdmin = false; showAdminUI(false);
-showToast('已登出管理模式');
-});
-const TABS = {
+sessionStorage.removeItem('tw_acg_admin');isAdmin = false; showAdminUI(false);showToast('已登出管理模式');});const TABS = {
 acg: {
 key: 'tw_acg_events',
 theme: 'theme-acg',
 label: 'ACG',
-typeOptions: ['同人誌即賣會','動漫展','COSPLAY','ACG音樂會','座談講座','市集','其他'],
-},
+typeOptions: ['同人誌即賣會','動漫展','COSPLAY','ACG音樂會','座談講座','市集','其他'],},
 adult: {
 key: 'tw_adult_events',
 theme: 'theme-adult',
 label: '成人展',
-typeOptions: ['成人展','同人創作','情趣用品','成人市集','其他'],
-}
-};</script>
+typeOptions: ['成人展','同人創作','情趣用品','成人市集','其他'],}};</script>
 <script src="events.min.js"></script>
 <script>const FULL_CATEGORIES = {
 '大型展覽': { icon: '🏛️', sub: ['綜合動漫展','漫畫博覽會','電玩遊戲展','電影玩具展','插畫博覽會','原創作品展','模型公仔展','懷舊電玩展','痛車痛物展','寫真展','ACG主題燈會','動畫影展','國際書展動漫館','文具文創展'] },
@@ -319,35 +312,13 @@ let trashBin = [];
 let selectedTags = new Set();
 let selectedMainTag = null;
 function getTabConfig() { return TABS[activeTab]; }
-function trashKey() { return activeTab + '_trash'; }
-function safeJSON(key, fallback) {
-try { const s = localStorage.getItem(key); if (s) { const d = JSON.parse(s); return d; } } catch (e) { console.warn('Corrupted localStorage key:', key, e); showToast('⚠️ 部分資料已損毀，已自動重置'); }
-return fallback;
-}
-function safeSetItem(key, value) {
-try { localStorage.setItem(key, value); return true; } catch (e) {
-if (e.name === 'QuotaExceededError' || e.code === 22) { showToast('⚠️ 儲存空間已滿，無法儲存資料'); }
-else { console.warn('localStorage error:', key, e); showToast('⚠️ 儲存時發生錯誤'); }
-return false;
-}
-}
-function loadEvents() {
-const cfg = getTabConfig();
-try { const s = localStorage.getItem(cfg.key); if (s) { events = JSON.parse(s); } else { events = [...EVENTS_DATA[activeTab]]; saveEvents(); } } catch (_) { events = [...EVENTS_DATA[activeTab]]; saveEvents(); }
-events.forEach(e => { if (!e.tags) e.tags = [e.type || '其他']; });
-rebuildCategories();
-}
-function saveEvents() {
-const cfg = getTabConfig();
-safeSetItem(cfg.key, JSON.stringify(events));
-rebuildCategories();
-}
+function trashKey() { return activeTab + '_trash'; }function safeJSON(key, fallback) {try { const s = localStorage.getItem(key); if (s) { const d = JSON.parse(s); return d; } } catch (e) { console.warn('Corrupted localStorage key:', key, e); showToast('⚠️ 部分資料已損毀，已自動重置'); }return fallback;}function safeSetItem(key, value) {try { localStorage.setItem(key, value); return true; } catch (e) {if (e.name === 'QuotaExceededError' || e.code === 22) { showToast('⚠️ 儲存空間已滿，無法儲存資料'); }else { console.warn('localStorage error:', key, e); showToast('⚠️ 儲存時發生錯誤'); }return false;}}function loadEvents() {
+const cfg = getTabConfig();try { const s = localStorage.getItem(cfg.key); if (s) { events = JSON.parse(s); } else { events = [...EVENTS_DATA[activeTab]]; saveEvents(); } } catch (_) { events = [...EVENTS_DATA[activeTab]]; saveEvents(); }events.forEach(e => { if (!e.tags) e.tags = [e.type || '其他']; });rebuildCategories();}
+function saveEvents() {const cfg = getTabConfig();safeSetItem(cfg.key, JSON.stringify(events));rebuildCategories();}
 function loadTrash() {
 try { const s = localStorage.getItem(trashKey()); if (s) trashBin = JSON.parse(s); else trashBin = []; } catch (_) { trashBin = []; }
 }
-function saveTrash() {
-safeSetItem(trashKey(), JSON.stringify(trashBin));
-}
+function saveTrash() {safeSetItem(trashKey(), JSON.stringify(trashBin));}
 function switchTab(tab) {
 if (tab === activeTab) return;
 saveEvents();
@@ -415,14 +386,7 @@ renderView();
 subRow.appendChild(chip);
 });
 }
-function updateBadges() {
-['acg','adult'].forEach(t => {
-const cfg = TABS[t];
-let c = 0;
-try { const s = localStorage.getItem(cfg.key); if (s) c = JSON.parse(s).length; else c = EVENTS_DATA[t].length; } catch(_) { c = EVENTS_DATA[t].length; }
-document.getElementById(t+'Badge').textContent = c;
-});
-}
+function updateBadges() {['acg','adult'].forEach(t => {const cfg = TABS[t];let c = 0;try { const s = localStorage.getItem(cfg.key); if (s) c = JSON.parse(s).length; else c = EVENTS_DATA[t].length; } catch(_) { c = EVENTS_DATA[t].length; }document.getElementById(t+'Badge').textContent = c;});}
 document.querySelectorAll('.tab-btn').forEach(btn => {
 btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
@@ -544,11 +508,7 @@ btn.addEventListener('click', e => { e.stopPropagation(); toggleFav(btn.dataset.
 grid.querySelectorAll('.card-del-btn').forEach(btn => {
 btn.addEventListener('click', e => {
 e.stopPropagation();
-if (!isAdmin) return;
-const ev = events.find(x => x.id === btn.dataset.id);
-if (!ev) return;
-if (!confirm(`確定刪除「${ev.name}」？此操作可從垃圾桶復原。`)) return;
-events = events.filter(x => x.id !== btn.dataset.id);
+if (!isAdmin) return;const ev = events.find(x => x.id === btn.dataset.id);if (!ev) return;if (!confirm(`確定刪除「${ev.name}」？此操作可從垃圾桶復原。`)) return;events = events.filter(x => x.id !== btn.dataset.id);
 loadTrash();
 trashBin.push({ event: ev, time: Date.now() });
 saveTrash(); saveEvents();
@@ -671,9 +631,7 @@ let reminders = [];
 try { const s = localStorage.getItem(reminderKey); if (s) reminders = JSON.parse(s); } catch(_) {}
 const existing = reminders.find(r => r.id === ev.id && r.tab === activeTab);
 if (existing) { showToast('已設定過提醒'); return; }
-reminders.push({ id: ev.id, tab: activeTab, name: ev.name, date: ev.date, time: ev.time || '10:00' });
-safeSetItem(reminderKey, JSON.stringify(reminders));
-showToast(`已設定「${ev.name}」提醒`);
+reminders.push({ id: ev.id, tab: activeTab, name: ev.name, date: ev.date, time: ev.time || '10:00' });safeSetItem(reminderKey, JSON.stringify(reminders));showToast(`已設定「${ev.name}」提醒`);
 schedulePendingReminders();
 }
 function schedulePendingReminders() {
@@ -696,10 +654,7 @@ setTimeout(() => {
 try { new Notification('📢 活動提醒', { body: `明天「${r.name}」就要舉辦了！`, icon: '' }); } catch(_) {}
 }, dayBefore);
 }
-return true;
-});
-safeSetItem(reminderKey, JSON.stringify(reminders));
-}
+return true;});safeSetItem(reminderKey, JSON.stringify(reminders));}
 function shareEventImage(ev) {
 const c = document.createElement('canvas');
 c.width = 600; c.height = 315;
@@ -895,13 +850,7 @@ if (dup) {
 showToast(`「${name}」在當天已有相同活動，請檢查`);
 return;
 }
-const tags = eTags.value.trim() ? eTags.value.split(',').map(s => s.trim()).filter(Boolean) : [];
-const urlFields = { image: eImage.value.trim(), link: eLink.value.trim(), fb: eFb.value.trim(), ig: eIg.value.trim(), x: eX.value.trim() };
-for (const [k, v] of Object.entries(urlFields)) {
-if (v && !/^https?:\/\
-if (v && /javascript:/i.test(v)) { showToast('不合法的網址'); return; }
-}
-const data = { name, type: eType.value, date, time: eTime.value, location: eLocation.value.trim(), fee: eFee.value.trim(), ...urlFields, desc: eDesc.value.trim(), notes: eNotes.value.trim(), tags };
+const tags = eTags.value.trim() ? eTags.value.split(',').map(s => s.trim()).filter(Boolean) : [];const urlFields = { image: eImage.value.trim(), link: eLink.value.trim(), fb: eFb.value.trim(), ig: eIg.value.trim(), x: eX.value.trim() };for (const [k, v] of Object.entries(urlFields)) {if (v && !/^https?:\/\if (v && /javascript:/i.test(v)) { showToast('不合法的網址'); return; }}const data = { name, type: eType.value, date, time: eTime.value, location: eLocation.value.trim(), fee: eFee.value.trim(), ...urlFields, desc: eDesc.value.trim(), notes: eNotes.value.trim(), tags };
 if (editingId) { const idx = events.findIndex(ev => ev.id === editingId); if (idx !== -1) events[idx] = { ...events[idx], ...data }; }
 else { data.id = activeTab[0]+Date.now().toString(36)+Math.random().toString(36).slice(2,6); events.push(data); }
 saveEvents(); closeEditModal(); renderView(); updateBadges();
@@ -993,8 +942,7 @@ try {
 let stored = [];
 const s = localStorage.getItem(cfg.key);
 if (s) stored = JSON.parse(s);
-const tabName = cfg.key === 'tw_acg_events' ? 'acg' : 'adult';
-EVENTS_DATA[tabName].forEach(def => {
+const tabName = cfg.key === 'tw_acg_events' ? 'acg' : 'adult';EVENTS_DATA[tabName].forEach(def => {
 const idx = stored.findIndex(e => e.id === def.id);
 if (idx !== -1) {
 stored[idx].notes = def.notes;
